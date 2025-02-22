@@ -12,7 +12,7 @@ This is the repository for the COSC 322 Project: The game of the Amazons
 - Run initial server connection tests with `COSC322Test.java`.
 - Debug connection issues and ensure stable communication with the game server.
 
-### Game Rules and Move Generation (TODO)
+### Game Rules and Move Generation 
 
 - Study the Game of the Amazons rules.
 - Implement move validation to ensure all moves are legal.
