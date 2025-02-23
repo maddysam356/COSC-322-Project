@@ -12,14 +12,14 @@ This is the repository for the COSC 322 Project: The game of the Amazons
 - Run initial server connection tests with `COSC322Test.java`.
 - Debug connection issues and ensure stable communication with the game server.
 
-### Game Rules and Move Generation 
+### Maddy and Kyle:Game Rules and Move Generation 
 
 - Study the Game of the Amazons rules.
 - Implement move validation to ensure all moves are legal.
 - Develop a function to generate all possible legal moves.
 - Optimize move generation for efficiency.
 
-### AI Algorithm Research
+### Aakash and Parsa: AI Algorithm Research
 
 - Study heuristic evaluation functions, including the **min-distance heuristic**.
 - Research Minimax with Alpha-Beta Pruning and Monte Carlo Tree Search (MCTS).
