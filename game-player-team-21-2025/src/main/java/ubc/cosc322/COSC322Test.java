@@ -55,10 +55,8 @@ public class COSC322Test extends GamePlayer{
     	this.passwd = passwd;
     	
     	//To make a GUI-based player, create an instance of BaseGameGUI
-		this.gamegui = new BaseGameGUI(this);
-
     	//and implement the method getGameGUI() accordingly
-    	//this.gamegui = new BaseGameGUI(this);
+		this.gamegui = new BaseGameGUI(this);
     }
  
 
@@ -82,24 +80,15 @@ public class COSC322Test extends GamePlayer{
     public boolean handleGameMessage(String messageType, Map<String, Object> msgDetails) {
     	//This method will be called by the GameClient when it receives a game-related message
     	//from the server.
-	System.out.println(messageType);
-	System.out.println(msgDetails);
+		System.out.println(messageType);
+		System.out.println(msgDetails);
     	//For a detailed description of the message types and format, 
     	//see the method GamePlayer.handleGameMessage() in the game-client-api document. 
 	
-	if (messageType.equals(GameMessage.GAME_STATE_BOARD)){
-		ArrayList <Integer> state =  (ArrayList <Integer>) msgDetails.get("game-state");
-		gamegui.setGameState(state);
-	}
-	// if (messageType.equals(GameMessage.GAME_ACTION_MOVE)){
-	// 	//pass move details as arg
-	// 	gamegui.updateGameState(null);
-	// 	//Calculate next move details
-	// 	gameClient.sendMoveMessage(msgDetails);
-	// }
-
-
-    	    	
+		if (messageType.equals(GameMessage.GAME_STATE_BOARD)){
+			ArrayList <Integer> state =  (ArrayList <Integer>) msgDetails.get("game-state");
+			gamegui.setGameState(state);
+		}	
     	return true;   	
     }
     
