@@ -55,8 +55,10 @@ public class COSC322Test extends GamePlayer{
     	this.passwd = passwd;
     	
     	//To make a GUI-based player, create an instance of BaseGameGUI
-    	//and implement the method getGameGUI() accordingly
 		this.gamegui = new BaseGameGUI(this);
+
+    	//and implement the method getGameGUI() accordingly
+    	//this.gamegui = new BaseGameGUI(this);
     }
  
 
@@ -67,7 +69,7 @@ public class COSC322Test extends GamePlayer{
 		List<Room> arr = gameClient.getRoomList();
 		for(int i = 0; i<arr.size(); i++)
 		 System.out.println(arr.get(i));
-		 gameClient.joinRoom("Okanagan Lake");
+		 gameClient.joinRoom("Kalamalka Lake");
     	
 		userName = gameClient.getUserName();
 		if (gamegui != null) {
@@ -77,20 +79,54 @@ public class COSC322Test extends GamePlayer{
     }
 
     @Override
-    public boolean handleGameMessage(String messageType, Map<String, Object> msgDetails) {
-    	//This method will be called by the GameClient when it receives a game-related message
-    	//from the server.
-		System.out.println(messageType);
-		System.out.println(msgDetails);
-    	//For a detailed description of the message types and format, 
-    	//see the method GamePlayer.handleGameMessage() in the game-client-api document. 
-	
-		if (messageType.equals(GameMessage.GAME_STATE_BOARD)){
-			ArrayList <Integer> state =  (ArrayList <Integer>) msgDetails.get("game-state");
-			gamegui.setGameState(state);
-		}	
-    	return true;   	
+public boolean handleGameMessage(String messageType, Map<String, Object> msgDetails) {
+    System.out.println("Received message: " + messageType);
+    System.out.println("Details: " + msgDetails);
+
+    if (messageType.equals(GameMessage.GAME_STATE_BOARD)) {
+        // Extract the board state from the message
+        ArrayList<Integer> state = (ArrayList<Integer>) msgDetails.get("game-state");
+        gamegui.setGameState(state);
+        System.out.println("Board size: " + state.size()); 
+        System.out.println("Full Game State: " + state);
+        
+        // Debugging: Check the board size
+        System.out.println("Board size received: " + state.size());
+       
+
+        // Convert 1D list into a 10x10 board
+        int[][] board = new int[10][10];
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                board[i][j] = state.get(i * 11 + j+12);
+            }
+        }
+
+        // Assume player 1 (1) or player 2 (2) – replace with actual player ID
+        int player = 1; 
+        int count=0;
+        int best = 0;
+        int[] bestMove={};
+        // Generate and print all moves
+        List<int[]> moves = MoveGenerator.generateAllMoves(board, player);
+        System.out.println("Available Moves:");
+        System.out.println(moves.size());
+        for (int[] move : moves) {
+            int heuristic = Heuristic.evaluateBoard(MoveGenerator.makeMove(board, move));
+            if(heuristic>best){best=heuristic; bestMove = move;}
+            if(count==1000){break;}else{
+                if(count>500){
+            System.out.printf("Queen moves from (%d, %d) to (%d, %d), Arrow at (%d, %d) heuristic: %d\n",
+                    move[0], move[1], move[2], move[3], move[4], move[5],heuristic);}
+                    count++;
+                    }
+        }
+        System.out.printf("Best Queen moves from (%d, %d) to (%d, %d), Arrow at (%d, %d) heuristic: %d\n",
+        bestMove[0], bestMove[1], bestMove[2], bestMove[3], bestMove[4], bestMove[5],best);
     }
+
+    return true;
+}
     
     
     @Override
@@ -116,6 +152,7 @@ public class COSC322Test extends GamePlayer{
 		// TODO Auto-generated method stub
     	gameClient = new GameClient(userName, passwd, this);			
 	}
+	
 
  
 }//end of class
