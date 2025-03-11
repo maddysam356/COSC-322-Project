@@ -52,17 +52,16 @@ public class NN {
     }
 
     public double[] predictHeuristicWeights(double[] inputFeatures) {
-        // Convert 1D array to a 2D row vector (1 row, N columns)
+        //2d row vector
         INDArray input = Nd4j.create(inputFeatures).reshape(1, inputFeatures.length);
-        
-        // Pass it through the neural network
+        // pass through network
         INDArray output = model.output(input);
     
-        // Convert the output from a 2D matrix back to a 1D array
+        // convert back to 1d
         return output.toDoubleVector();
     }
     
-
+    //used for testing
     public void train(double[][] inputs, double[][] targets) {
         INDArray inputArray = Nd4j.create(inputs);
         INDArray targetArray = Nd4j.create(targets);
