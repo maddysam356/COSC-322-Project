@@ -101,18 +101,28 @@ public class PlayerMoveHandler {
             return;
         }
 
-        if (isAvailable(row, col)) {
+        // Check if the selected arrow position is the queen's old or new position
+        boolean isQueenOldPosition = (selectedQueen != null && row == selectedQueen[0] && col == selectedQueen[1]);
+        boolean isQueenNewPosition = (newQueen != null && row == newQueen[0] && col == newQueen[1]);
+
+        if (isQueenNewPosition) {  // ❌ Block placing an arrow on the new queen position
+            System.out.println("Invalid selection. Cannot place an arrow where the queen moved.");
+            return;
+        }
+
+        if (isAvailable(row, col) || isQueenOldPosition) { // ✅ Allow old queen position but not new one
             if (newQueen != null && isValidArrowMove(newQueen[0], newQueen[1], row, col)) {
                 selectedArrow = new int[]{row, col};
                 System.out.println("Selected arrow at: " + row + ", " + col);
                 arrowSelected = true;
             } else {
-                System.out.println("Invalid arrow placement");
+                System.out.println("Invalid arrow placement. Must be in a straight line from the moved queen.");
             }
         } else {
             System.out.println("Invalid selection. Choose a valid square.");
         }
     }
+
     /**
      * Moves the queen if the move is valid.
      */
@@ -223,27 +233,50 @@ public class PlayerMoveHandler {
         return row >= 0 && row <= 10 && col >= 0 && col <= 10;
     }
     /**
-     * Ensures the arrow can only be placed in a valid straight-line direction from the queen's new position.
+     * Ensures the arrow can only be placed in a valid straight-line direction 
+     * from the queen's new position, including over the queen's old position.
      */
     private boolean isValidArrowMove(int queenRow, int queenCol, int arrowRow, int arrowCol) {
-        // Check if it's in the same row, column, or diagonal
-        if (queenRow == arrowRow || queenCol == arrowCol || Math.abs(queenRow - arrowRow) == Math.abs(queenCol - arrowCol)) {
-            
+        // Check if arrow is in the same row, column, or diagonal from the queen’s new position
+        if (queenRow == arrowRow || queenCol == arrowCol 
+                || Math.abs(queenRow - arrowRow) == Math.abs(queenCol - arrowCol)) {
+
             int rowStep = Integer.compare(arrowRow, queenRow);
             int colStep = Integer.compare(arrowCol, queenCol);
-
             int r = queenRow + rowStep;
             int c = queenCol + colStep;
 
-            // Ensure there are no obstacles in the path
-            while (isValidPosition(r, c) && (r != arrowRow || c != arrowCol)) {
-                if (boardState[r][c] != 0) return false; // Obstacle detected
+            // Traverse from queen's new position towards the arrow target
+            while (isValidPosition(r, c)) {
+                // If we've reached the arrow's target square, stop checking further
+                if (r == arrowRow && c == arrowCol) {
+                    break;
+                }
+                // If this square is occupied by an obstacle (queen or arrow)...
+                if (boardState[r][c] != 0) {
+                    // ...but if it's the queen’s old position, ignore it (queen has moved)
+                    if (selectedQueen != null && r == selectedQueen[0] && c == selectedQueen[1]) {
+                        // skip this square since the queen moved from here
+                    } else {
+                        return false; // other obstacle found – invalid arrow path
+                    }
+                }
+                // Move one step further along the line
                 r += rowStep;
                 c += colStep;
             }
+
+            // At this point, we either reached the target or found no blocking obstacles.
+            // Ensure the target square itself is valid (should be empty or the queen's old spot).
+            if (!(selectedQueen != null && arrowRow == selectedQueen[0] && arrowCol == selectedQueen[1])) {
+                // If target is not the old queen position, it must be truly empty
+                if (boardState[arrowRow][arrowCol] != 0) {
+                    return false;
+                }
+            }
             return true;
         }
-        return false; // Not a valid straight-line move
+        return false; // Not in a straight line from the queen
     }
 
     
