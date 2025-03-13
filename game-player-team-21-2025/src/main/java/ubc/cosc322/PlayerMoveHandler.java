@@ -10,6 +10,7 @@ public class PlayerMoveHandler {
     private int[][] boardState = new int[11][11]; // Store board state
     public boolean queenMoved  = false;
     public boolean arrowSelected = false;
+    public boolean blackTurn = false;
     // Track selected queen position
     private int[] selectedQueen = null;
     private int[] newQueen = null;
@@ -42,6 +43,7 @@ public class PlayerMoveHandler {
             }
             System.out.println();
         }
+        blackTurn = true;
     }
 
     /**
@@ -85,13 +87,34 @@ public class PlayerMoveHandler {
 
         System.out.println("Board Value: " + boardState[row][col]); // Debugging
 
-        if (isPlayerQueen(row, col)) {
+        if (isPlayerQueen(row, col) && playerTurn(row,col)) {
             selectedQueen = new int[]{row, col};
             System.out.println("Selected Queen at: " + row + ", " + col);
         } else {
             System.out.println("Invalid selection. Choose a valid queen.");
         }
     }
+    
+    private boolean playerTurn (int row, int col) {
+    	
+    	
+    	if (boardState[row][col] == 1 && blackTurn) {
+    		
+    		
+    		return true;
+    		
+    	} else if (boardState[row][col] == 2 && !blackTurn) {
+    		
+    		
+    		
+    		return true;
+    	}else {
+    	
+    	System.out.println("wrong turn");
+    	return false;
+    	}
+    }
+    
     
     private void selectArrow(int row, int col) {
         System.out.println("Clicked on: " + row + ", " + col);
@@ -179,6 +202,8 @@ public class PlayerMoveHandler {
         newQueen = null;
         queenMoved = false;
         arrowSelected = false;
+        blackTurn = !blackTurn;
+        System.out.println(blackTurn);
     }
 
     /**
