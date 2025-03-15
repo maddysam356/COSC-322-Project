@@ -4,6 +4,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import ygraph.ai.smartfox.games.BaseGameGUI;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class PlayerMoveHandler {
     private COSC322Test gameInstance;
@@ -15,6 +17,8 @@ public class PlayerMoveHandler {
     private int[] selectedQueen = null;
     private int[] newQueen = null;
     private int[] selectedArrow = null;
+    int countdownSeconds = 100; // 
+    public boolean Lost = false;
     public PlayerMoveHandler(COSC322Test gameInstance) {
         this.gameInstance = gameInstance;
         enablePlayerMovement();
@@ -45,6 +49,34 @@ public class PlayerMoveHandler {
         }
         blackTurn = true;
     }
+    public void Timer() {
+    	
+    	
+    	countdownSeconds = 30; // Change this to your desired countdown time
+
+        Timer timer = new Timer();
+        TimerTask task = new TimerTask() {
+            int secondsLeft = countdownSeconds;
+
+            @Override
+            public void run() {
+                if (secondsLeft > 0) {
+                    System.out.println("Time left: " + secondsLeft + " seconds");
+                    secondsLeft--;
+                } else {
+                    System.out.println("You Lost");
+                    timer.cancel();
+                    Lost = true;
+                }
+            }
+        };
+
+        // Schedule the task to run every second (1000ms)
+        timer.scheduleAtFixedRate(task, 0, 1000);
+    	
+    	
+    }
+    
 
     /**
      * Enables player movement by adding a mouse listener.
@@ -55,7 +87,7 @@ public class PlayerMoveHandler {
             public void mouseClicked(MouseEvent e) {
                 int row = e.getY() / 50; // Adjust based on board tile size
                 int col = e.getX() / 50;
-
+                if (!Lost) {
                 if (selectedQueen == null) { // Step 1: Select Queen
                     selectQueen(Math.abs(row -11), col);
                 }  
@@ -71,6 +103,7 @@ public class PlayerMoveHandler {
                     UpdateGameState();
             }
                 }
+            }
         });
     }
 

@@ -18,7 +18,7 @@ public class COSC322Test extends GamePlayer {
 
     private GameClient gameClient = null;
     private BaseGameGUI gamegui = null;
-    private PlayerMoveHandler playerMoveHandler; // New handler for player movement
+    private static PlayerMoveHandler playerMoveHandler; // New handler for player movement
 
     private String userName = null;
     private String passwd = null;
@@ -35,6 +35,8 @@ public class COSC322Test extends GamePlayer {
             BaseGameGUI.sys_setup();
             java.awt.EventQueue.invokeLater(() -> player.Go());
         }
+        
+        playerMoveHandler.Timer();
     }
 
    
