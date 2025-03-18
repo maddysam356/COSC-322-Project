@@ -18,7 +18,7 @@ public class minimax {
             Move currentBestMove = minimaxRoot(board, depth, player);
 
             if (System.currentTimeMillis() - startTime >= TIME_LIMIT) {
-                System.out.println("Time limit reached. Using last completed depth: " + (depth - 1));
+                System.out.println("time limit reached. using depth: " + (depth - 1)); //print the 
                 break;
             }
 
