@@ -3,7 +3,6 @@ package ubc.cosc322;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import ygraph.ai.smartfox.games.BaseGameGUI;
 import java.util.Timer;
 import java.util.TimerTask;
 
