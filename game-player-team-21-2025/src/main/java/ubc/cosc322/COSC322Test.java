@@ -12,7 +12,6 @@ import ygraph.ai.smartfox.games.GameMessage;
 import ygraph.ai.smartfox.games.GamePlayer;
 
 
- 
 
 public class COSC322Test extends GamePlayer {
 

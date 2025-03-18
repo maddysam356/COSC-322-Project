@@ -17,7 +17,8 @@ public class PlayerMoveHandler {
     private int[] selectedQueen = null;
     private int[] newQueen = null;
     private int[] selectedArrow = null;
-    int countdownSeconds = 100; // 
+    int countdownSeconds = 30; // 
+    Timer timer;
     public boolean Lost = false;
     public PlayerMoveHandler(COSC322Test gameInstance) {
         this.gameInstance = gameInstance;
@@ -50,11 +51,8 @@ public class PlayerMoveHandler {
         blackTurn = true;
     }
     public void Timer() {
-    	
-    	
-    	countdownSeconds = 30; // Change this to your desired countdown time
-
-        Timer timer = new Timer();
+    	//countdownSeconds = 30; // Change this to your desired countdown time
+        timer = new Timer();
         TimerTask task = new TimerTask() {
             int secondsLeft = countdownSeconds;
 
@@ -70,14 +68,9 @@ public class PlayerMoveHandler {
                 }
             }
         };
-
         // Schedule the task to run every second (1000ms)
-        timer.scheduleAtFixedRate(task, 0, 1000);
-    	
-    	
+        timer.scheduleAtFixedRate(task, 0, 1000);    	
     }
-    
-
     /**
      * Enables player movement by adding a mouse listener.
      */
@@ -117,7 +110,6 @@ public class PlayerMoveHandler {
             System.out.println("Invalid selection. Out of bounds.");
             return;
         }
-
         System.out.println("Board Value: " + boardState[row][col]); // Debugging
 
         if (isPlayerQueen(row, col) && playerTurn(row,col)) {
@@ -128,18 +120,11 @@ public class PlayerMoveHandler {
         }
     }
     
-    private boolean playerTurn (int row, int col) {
-    	
-    	
-    	if (boardState[row][col] == 1 && blackTurn) {
-    		
-    		
+    private boolean playerTurn (int row, int col) {  	
+    	if (boardState[row][col] == 1 && blackTurn) {   		
     		return true;
     		
-    	} else if (boardState[row][col] == 2 && !blackTurn) {
-    		
-    		
-    		
+    	} else if (boardState[row][col] == 2 && !blackTurn) {    		
     		return true;
     	}else {
     	
@@ -189,24 +174,10 @@ public class PlayerMoveHandler {
             System.out.println("Invalid move. Out of bounds.");
             return;
         }
-
-        if (isValidMove(selectedQueen[0], selectedQueen[1], newRow, newCol)) {
-            
-            
-            
-            
-            newQueen = new int[]{newRow, newCol};
-            
-            
-            
-           
-           
-            
-            
+        if (isValidMove(selectedQueen[0], selectedQueen[1], newRow, newCol)) {           
+            newQueen = new int[]{newRow, newCol};            
             System.out.println("Queen moved to: " + newRow + ", " + newCol);
-            queenMoved = true;
-            
-           
+            queenMoved = true;         
         } else {
             System.out.println("Invalid move. Try again.");
             queenMoved = false;
@@ -222,13 +193,10 @@ public class PlayerMoveHandler {
         queenNew.add(newQueen[0]);
         queenNew.add(newQueen[1]);
         arrowNew.add(selectedArrow[0]);
-        arrowNew.add(selectedArrow[1]);
-        
-        
+        arrowNew.add(selectedArrow[1]);        
         boardState[newQueen[0]][newQueen[1]] = boardState[selectedQueen[0]][selectedQueen[1]];
         boardState[selectedQueen[0]][selectedQueen[1]] = 0;
-        boardState[selectedArrow[0]][selectedArrow[1]] = 3;
-        
+        boardState[selectedArrow[0]][selectedArrow[1]] = 3;   
         gameInstance.getGameGUI().updateGameState(queenCurrent, queenNew, arrowNew); // No arrow placement yet
         selectedQueen = null; // Reset selection
         selectedArrow = null;
@@ -236,6 +204,9 @@ public class PlayerMoveHandler {
         queenMoved = false;
         arrowSelected = false;
         blackTurn = !blackTurn;
+        countdownSeconds = 30;
+        timer.cancel();
+        Timer();
         System.out.println(blackTurn);
     }
 
@@ -247,16 +218,11 @@ public class PlayerMoveHandler {
         return (boardState[row][col] == 1 || boardState[row][col] == 2); // 1 = White, 2 = Black
     }
     
-    private boolean isAvailable(int row, int col) {
-    	
-    	
-    	if (boardState[row][col] == 0) {
-    		
-    		return true;
-    		
+    private boolean isAvailable(int row, int col) {   	
+    	if (boardState[row][col] == 0) {  		
+    		return true;  		
     	}
     	return false;
-    	
     }
 
     /**
@@ -268,7 +234,6 @@ public class PlayerMoveHandler {
         if (!isValidPosition(newRow, newCol)) return false; // Out of bounds
 
         if (boardState[newRow][newCol] != 0) return false; // ❌ Prevent moving onto occupied squares
-
         int rowStep = Integer.compare(newRow, oldRow);
         int colStep = Integer.compare(newCol, oldCol);
 
