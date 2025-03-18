@@ -13,6 +13,7 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
+//this is not in use at the moment
 public class NN {
 
     private MultiLayerNetwork model;
