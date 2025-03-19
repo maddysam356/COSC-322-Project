@@ -40,7 +40,7 @@ public class minimax {
 
         for (Move move : possibleMoves) {
             int[][] newBoard = applyMove(board, move, player); //create new board with new move
-            int moveValue = minimax(newBoard, depth - 1, false, alpha, beta, player);// recursive call for every move -> move to alpha beta minimax
+            int moveValue = minimaxAlgorithm(newBoard, depth - 1, false, alpha, beta, player);// recursive call for every move -> move to alpha beta minimax
             //find the biggest move of the current biggest move and new move calculated
             if (moveValue > bestValue) {
                 bestValue = moveValue;
@@ -53,7 +53,7 @@ public class minimax {
     }
 
     //Minimax function with alpha-beta pruning.
-    private int minimax(int[][] board, int depth, boolean isMaximizing, int alpha, int beta, int player) {
+    private int minimaxAlgorithm(int[][] board, int depth, boolean isMaximizing, int alpha, int beta, int player) {
         if (depth == 0 || isTimeUp()) {//return best hurstic value with move
             return Heuristic.evaluateBoard(board); //temperory class in use
         }
@@ -67,7 +67,7 @@ public class minimax {
             int maxEval = Integer.MIN_VALUE;
             for (Move move : possibleMoves) {
                 int[][] newBoard = applyMove(board, move, player);
-                int eval = minimax(newBoard, depth - 1, false, alpha, beta, player);
+                int eval = minimaxAlgorithm(newBoard, depth - 1, false, alpha, beta, player);
                 maxEval = Math.max(maxEval, eval);
                 alpha = Math.max(alpha, eval);
                 if (beta <= alpha) break; // Beta prune
@@ -77,7 +77,7 @@ public class minimax {
             int minEval = Integer.MAX_VALUE;
             for (Move move : possibleMoves) {
                 int[][] newBoard = applyMove(board, move, opponent);
-                int eval = minimax(newBoard, depth - 1, true, alpha, beta, player);
+                int eval = minimaxAlgorithm(newBoard, depth - 1, true, alpha, beta, player);
                 minEval = Math.min(minEval, eval);
                 beta = Math.min(beta, eval);
                 if (beta <= alpha) break; // Alpha prune

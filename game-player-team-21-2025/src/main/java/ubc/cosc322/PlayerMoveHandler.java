@@ -33,6 +33,7 @@ public class PlayerMoveHandler {
             return;
         }
 
+        // Convert the 1D ArrayList to a 2D array
         for (int i = 10; i >= 0; i--) {
             for (int j = 0; j < 11; j++) {
                 boardState[i][j] = state.get(i * 11 + j);

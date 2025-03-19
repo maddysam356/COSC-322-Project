@@ -2,7 +2,7 @@
 package ubc.cosc322;
 
 import java.util.ArrayList;
-import java.util.List;
+
 import java.util.Map;
 
 import sfs2x.client.entities.Room;
@@ -13,11 +13,13 @@ import ygraph.ai.smartfox.games.GamePlayer;
 
 
 
+@SuppressWarnings("unused")
 public class COSC322Test extends GamePlayer {
 
     private GameClient gameClient = null;
     private BaseGameGUI gamegui = null;
     private static PlayerMoveHandler playerMoveHandler; // New handler for player movement
+    
 
     private String userName = null;
     private String passwd = null;
@@ -41,7 +43,8 @@ public class COSC322Test extends GamePlayer {
    
      
 
-  public COSC322Test(String userName, String passwd) {
+  @SuppressWarnings("static-access")
+public COSC322Test(String userName, String passwd) {
       this.userName = userName;
       this.passwd = passwd;
       this.gamegui = new BaseGameGUI(this);
@@ -63,11 +66,16 @@ public class COSC322Test extends GamePlayer {
      
 Handles game messages from the server.*/@Override
   public boolean handleGameMessage(String messageType, Map<String, Object> msgDetails) {
+     // System.out.println("Inside handleGameMessage");
       System.out.println(messageType);
       System.out.println(msgDetails);
 
         if (messageType.equals(GameMessage.GAME_STATE_BOARD)|| playerMoveHandler.queenMoved == true) {
+            @SuppressWarnings("unchecked")
             ArrayList<Integer> state = (ArrayList<Integer>) msgDetails.get("game-state");
+            //Call the generateAllMoves with the current state, and player (Black or white) as the argument
+
+            // GenerateAllMoves.generateAllMoves(state,2);
             playerMoveHandler.updateBoardState(state); // Delegate board updates
             gamegui.setGameState(state);
             playerMoveHandler.queenMoved = false;
