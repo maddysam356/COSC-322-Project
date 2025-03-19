@@ -5,8 +5,9 @@ import java.util.ArrayList;
 public class GenerateAllMoves {
 
     public void generateAllMoves(ArrayList<Integer> state, int playerColor) {
-        System.out.println("Generating all moves for player " );
-        // Convert state to a 2D board
+        System.out.println("Generating all moves for player " + playerColor);
+
+        // Convert state (1D ArrayList) to a 2D board (11x11)
         int[][] boardState = new int[11][11];
         for (int i = 10; i >= 0; i--) {
             for (int j = 0; j < 11; j++) {
@@ -14,61 +15,72 @@ public class GenerateAllMoves {
             }
         }
 
-        // For each queen belonging to playerColor, find all valid moves
+        int counter = 0; // Track the number of valid moves (board states) printed
+
+        // For each square, check if it has a queen of the specified playerColor
         for (int row = 0; row <= 10; row++) {
             for (int col = 0; col <= 10; col++) {
+                // Only move the queen if it matches the given playerColor
                 if (boardState[row][col] == playerColor) {
-                    // Check all squares in the board for valid moves
+                    // Check every possible square to see if it's a valid new position
                     for (int newRow = 0; newRow <= 10; newRow++) {
                         for (int newCol = 0; newCol <= 10; newCol++) {
                             if (isValidMove(boardState, row, col, newRow, newCol)) {
-                                // Create a copy of boardState and move the queen
+                                // Copy the board and move the queen to newRow, newCol
                                 int[][] newBoard = copyBoard(boardState);
                                 newBoard[newRow][newCol] = newBoard[row][col];
                                 newBoard[row][col] = 0;
 
-                                // Print this new board state
+                                // Print the resulting board state
                                 printBoard(newBoard);
-                                System.out.println("--HEHE---");
+                                System.out.println("-----");
+                                counter++;
                             }
                         }
                     }
                 }
             }
         }
+
+        // Print the total number of valid moves found
+        System.out.println("Total number of states printed: " + counter);
     }
 
     // Validates queen movement: vertical, horizontal, diagonal, unobstructed
     private static boolean isValidMove(int[][] board, int oldRow, int oldCol, int newRow, int newCol) {
-        if (oldRow == newRow && oldCol == newCol) return false;  // No movement
-        if (!isValidPosition(newRow, newCol)) return false;      // Out of bounds
-        if (board[newRow][newCol] != 0) return false;            // Occupied square
+        // 1) No "move" if the old and new positions are the same
+        if (oldRow == newRow && oldCol == newCol) return false;
+        // 2) Position must be within the valid board area (excluding first column & last row)
+        if (!isValidPosition(newRow, newCol)) return false;
+        // 3) Destination square must be empty
+        if (board[newRow][newCol] != 0) return false;
 
-        // Determine the step direction
+        // Determine row and column step to check for straight-line movement
         int rowStep = Integer.compare(newRow, oldRow);
         int colStep = Integer.compare(newCol, oldCol);
 
-        // Check if queen moves in a straight line (vertical / horizontal / diagonal)
+        // Must move either vertically, horizontally, or diagonally
         if (rowStep == 0 && colStep == 0) return false;
 
-        // Traverse toward newRow, newCol and ensure no obstruction
+        // Traverse from (oldRow, oldCol) to (newRow, newCol) to check for obstructions
         int r = oldRow + rowStep;
         int c = oldCol + colStep;
         while (r != newRow || c != newCol) {
-            // Check if the current position is within bounds
             if (!isValidPosition(r, c)) return false;
-
-            // Check if the path is obstructed
             if (board[r][c] != 0) return false;
-
             r += rowStep;
             c += colStep;
         }
         return true;
     }
 
+    /**
+     * Restricts valid positions so that col=0 and row=10 are considered "out of bounds."
+     * Adjust the range as needed if your board representation differs.
+     */
     private static boolean isValidPosition(int row, int col) {
-        return row >= 0 && row <= 10 && col >= 0 && col <= 10;
+        // row must be between 0 and 9, col must be between 1 and 10
+        return (row >= 0 && row < 10) && (col > 0 && col <= 10);
     }
 
     private static int[][] copyBoard(int[][] original) {
@@ -80,6 +92,7 @@ public class GenerateAllMoves {
     }
 
     private static void printBoard(int[][] board) {
+        // Print rows from top (10) down to 0 for a more standard view
         for (int i = 10; i >= 0; i--) {
             for (int j = 0; j < 11; j++) {
                 System.out.print(board[i][j] + " ");
