@@ -2,11 +2,15 @@ package ubc.cosc322;
 
 public class Heuristic {
     public static int evaluateBoard(int[][] board) {
-        int mobilityScore = calculateMobility(board);
+        int mobilityScore = calculateWeightedMobility(board);
         int influenceScore = calculateInfluence(board);
-        int territoryScore = calculateControl(board);
+        int territoryScore = calculateTerritoryControl(board);
+        int opponentBlockingScore = calculateOpponentBlocking(board);
+        int queenSafetyScore = calculateQueenSafety(board);
 
-        return (2 * mobilityScore) + (3 * influenceScore) + territoryScore;
+        // formula
+        return (int) ((2.5 * mobilityScore) + (2 * influenceScore) + (1.5 * territoryScore) + 
+                      (1.2 * opponentBlockingScore) - (1 * queenSafetyScore));
     }
 
     public static int calculateMobility(int[][] board){
