@@ -1,5 +1,7 @@
 package ubc.cosc322;
 
+import java.util.List;
+
 public class Heuristic {
     public static int evaluateBoard(int[][] board) {
         int mobilityScore = calculateWeightedMobility(board);
@@ -13,11 +15,47 @@ public class Heuristic {
                       (1.2 * opponentBlockingScore) - (1 * queenSafetyScore));
     }
 
-    public static int calculateMobility(int[][] board){
-        int playerMoves = MoveGenerator.generateAllMoves(board, 1).size();
-        int opponentMoves = MoveGenerator.generateAllMoves(board, 2).size();
-        return playerMoves-opponentMoves;
+
+    //mobitity 
+    public static int calculateWeightedMobility(int[][] board) {
+        int playerMoves = 0;
+        int opponentMoves = 0;
+        //loop through board
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (board[i][j] == 1) { // bot queen =1
+                    playerMoves += weightMove(MoveGenerator.findMovesForQueen(board, i, j), i, j);
+                } else if (board[i][j] == 2) { // enemy queen =2
+                    opponentMoves += weightMove(MoveGenerator.findMovesForQueen(board, i, j), i, j);
+                }
+            }
+        }
+        return playerMoves - opponentMoves;
     }
+
+    //center move high weight
+    //edge moves low weight
+    //more mobility in center so it is prioritised
+    private static int weightMove(List<int[]> moves, int row, int col) {
+        int weight = 0;
+        for (int[] move : moves) {
+            int r = move[0], c = move[1];
+            // center moves
+            if (r >= 3 && r <= 6 && c >= 3 && c <= 6) {
+                weight += 2; 
+            } else {
+                weight += 1; // all other moves
+            }
+        }
+        return weight;
+    }
+
+
+
+
+
+
+
     public static int calculateInfluence(int[][] board){
         int playerInfluence = 0;
         int opponentInfluence = 0;
