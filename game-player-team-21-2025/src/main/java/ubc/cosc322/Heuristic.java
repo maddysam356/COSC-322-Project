@@ -50,26 +50,55 @@ public class Heuristic {
         return weight;
     }
 
+    //influence
+    public static int calculateInfluence(int[][] board) {
+        int[][] influenceMap = new int[10][10]; // new board for calculations
 
-
-
-
-
-
-    public static int calculateInfluence(int[][] board){
-        int playerInfluence = 0;
-        int opponentInfluence = 0;
-        for(int i = 0; i<10;i++){
-            for(int j = 0; j<10;j++){
-                if(board[i][j]==1){
-                    playerInfluence+=MoveGenerator.findMovesForQueen(board, i, j).size();
-                }else if(board[i][j]==2){
-                    opponentInfluence+=MoveGenerator.findMovesForQueen(board, i, j).size();
+        //loop through board
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                // check for bot queens and enemy queens
+                if (board[i][j] == 1) {
+                    updateInfluence(board, influenceMap, i, j, 1);
+                } else if (board[i][j] == 2) {
+                    updateInfluence(board, influenceMap, i, j, -1);
                 }
             }
         }
-return playerInfluence-opponentInfluence;
+
+        int influenceScore = 0;
+        for (int[] row : influenceMap) {
+            for (int cell : row) {
+                influenceScore += cell;
+            }
+        }
+        return influenceScore;
     }
+
+    //assisting function
+    private static void updateInfluence(int[][] board, int[][] influenceMap, int row, int col, int value) {
+        int[] directions = {-1, 0, 1}; //possible values that can be taken
+        //eg left by 1 is (-1,0)
+
+        //by looping over go through all possible moves around it
+        for (int dr : directions) {
+            for (int dc : directions) {
+                if (dr == 0 && dc == 0) continue;//no move so skip
+                int r = row + dr, c = col + dc;
+                int influence = 3; //near queen, increase influence
+                while (MoveGenerator.isValid(board, r, c)) {// until queen path is blocked
+                    influenceMap[r][c] += (value * influence);
+                    influence--; //decreament influence since further away
+                    r += dr;
+                    c += dc;
+                }
+            }
+        }
+    }
+
+
+
+
 
     public static int calculateControl(int[][] board){
         int[][] controlMap = new int[10][10];
