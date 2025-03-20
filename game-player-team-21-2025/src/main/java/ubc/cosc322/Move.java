@@ -5,6 +5,7 @@ import java.util.List;
 
 //temperary class
 public class Move {
+    //just added for temporary class
 
     public int endRow;
     public int startRow;
