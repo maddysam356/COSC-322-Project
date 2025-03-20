@@ -9,7 +9,7 @@ public class Heuristic {
         int mobilityScore = calculateWeightedMobility(board);
         int influenceScore = calculateInfluence(board);
         int territoryScore = calculateTerritoryControl(board);
-        int opponentBlockingScore = calculateOpponentBlocking(board);
+        int opponentBlockingScore = calculateEnemyBlocking(board);
         int queenSafetyScore = calculateQueenSafety(board);
 
         // formula
@@ -163,6 +163,28 @@ public class Heuristic {
             }
         }
         return false;
+    }
+
+    //better move if enemy has less space
+    public static int calculateEnemyBlocking(int[][] board) {
+        int MoveCountBefore = MoveGenerator.generateAllMoves(board, 2).size();
+        int MoveCountAfter = MoveGenerator.generateAllMoves(board, 2).size();
+        return MoveCountBefore - MoveCountAfter;// better if less moves after move
+    }
+
+    //better is queens have more space
+    public static int calculateQueenSafety(int[][] board) {
+        int safetyPenalty = 0;
+
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (board[i][j] == 1) {
+                    int moves = MoveGenerator.findMovesForQueen(board, i, j).size();
+                    if (moves < 3) safetyPenalty += (4 - moves); //less space higher penalty
+                }
+            }
+        }
+        return safetyPenalty;
     }
 }
     
