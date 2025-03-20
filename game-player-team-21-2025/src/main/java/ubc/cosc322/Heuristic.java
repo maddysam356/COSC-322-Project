@@ -1,6 +1,8 @@
 package ubc.cosc322;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 public class Heuristic {
     public static int evaluateBoard(int[][] board) {
@@ -97,49 +99,70 @@ public class Heuristic {
     }
 
 
+    public static int calculateTerritoryControl(int[][] board) {
+        boolean[][] visited = new boolean[10][10];//1 if item present
+        int playerScore = 0, opponentScore = 0; //to track control
 
-
-
-    public static int calculateControl(int[][] board){
-        int[][] controlMap = new int[10][10];
-        for (int r = 0; r < 10; r++) {
-            for (int c = 0; c < 10; c++) {
-                if (board[r][c] == 0) {
-                    int playerControl = countAttackers(board, r, c, 1);
-                    int opponentControl = countAttackers(board, r, c, 2);
-                    if (playerControl > opponentControl) controlMap[r][c] = 1;
-                    else if (opponentControl > playerControl) controlMap[r][c] = -1;
+        //loop through board
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (board[i][j] == 0 && !visited[i][j]) {//if empty area and not already checked
+                    int areaSize = floodFill(board, visited, i, j);//find other empty area connected to tile
+                    if (isNearPlayer(board, i, j)) {//check if newar bot and increase score
+                        playerScore += areaSize;
+                    } else if (isNearEnemy(board, i, j)) {//check if near enemy and increase score
+                        opponentScore += areaSize;
+                    }
                 }
             }
         }
-
-        int territoryScore = 0;
-        for (int[] row : controlMap) {
-            for (int cell : row) {
-                territoryScore += cell;
-            }
-        }
-        return territoryScore;
+        return playerScore - opponentScore;
     }
-    public static int countAttackers(int[][] board, int row, int col, int player){
-        int attackers = 0;
-        int[] directions = {-1, 0, 1};
 
-        for (int dr : directions) {
-            for (int dc : directions) {
-                if (dr == 0 && dc == 0) continue;
-                int r = row + dr, c = col + dc;
+    //connect neighbouring tiles- BFS
+    private static int floodFill(int[][] board, boolean[][] visited, int row, int col) {
+        Queue<int[]> queue = new LinkedList<>();
+        queue.add(new int[]{row, col});//add passed in empty tile
+        visited[row][col] = true;//mark on map
+        int count = 0;//amount of empty tiles
 
-                while (MoveGenerator.isValid(board, r, c)) {
-                    r += dr;
-                    c += dc;
-                }
-                if (MoveGenerator.isValid(board, r, c) && board[r][c] == player) {
-                    attackers++;
+        int[] dr = {-1, 1, 0, 0}, dc = {0, 0, -1, 1};//all directions- only check 4 way adjecency
+        while (!queue.isEmpty()) {//while elements in queue
+            int[] pos = queue.poll();//remove element
+            count++;
+            
+            //check for each neighbour
+            for (int d = 0; d < 4; d++) {
+                int r = pos[0] + dr[d], c = pos[1] + dc[d];
+                // if inside board & not visited &empty
+                if (MoveGenerator.isValid(board, r, c) && !visited[r][c] && board[r][c] == 0) {
+                    visited[r][c] = true;
+                    queue.add(new int[]{r, c}); //add to queue
                 }
             }
         }
-        return attackers;
+        return count;//number of tiles in empty area
+    }
+
+    //check for bot =1
+    private static boolean isNearPlayer(int[][] board, int row, int col) {
+        return checkBoard(board, row, col, 1);
+    }
+
+    //check for enemy =2
+    private static boolean isNearEnemy(int[][] board, int row, int col) {
+        return checkBoard(board, row, col, 2);
+    }
+
+    private static boolean checkBoard(int[][] board, int row, int col, int player) {
+        int[] dr = {-1, 1, 0, 0}, dc = {0, 0, -1, 1};//moveable directions - no diagonal
+        for (int d = 0; d < 4; d++) {
+            int r = row + dr[d], c = col + dc[d];
+            if (MoveGenerator.isValid(board, r, c) && board[r][c] == player) {//check if 1 or 2 depending on call
+                return true;
+            }
+        }
+        return false;
     }
 }
     
