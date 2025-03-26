@@ -1,5 +1,5 @@
 package ubc.cosc322;
-
+/* 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
@@ -79,4 +79,4 @@ public class NN {
         model = MultiLayerNetwork.load(new java.io.File(filePath), true);
     }
 }
-
+*/

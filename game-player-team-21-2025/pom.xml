@@ -12,35 +12,16 @@
     <description>COSC 322 Game Player Project</description>
     <inceptionYear>2021</inceptionYear>
     
-	
+    
     <dependencies> 
-        <dependency>	        
-	    <groupId>ubc-yong-gao</groupId>
+        <dependency>            
+        <groupId>ubc-yong-gao</groupId>
             <artifactId>ygraph-ai-smartfox-client</artifactId>
             <version>2.1</version>
             <type>jar</type>
         </dependency>
-        <dependency>
-        <groupId>org.deeplearning4j</groupId>
-        <artifactId>deeplearning4j-core</artifactId>
-        <version>1.0.0-beta7</version>
-    </dependency>
-
-    <!-- ND4J (Numerical Computation) -->
-    <dependency>
-        <groupId>org.nd4j</groupId>
-        <artifactId>nd4j-native-platform</artifactId>
-        <version>1.0.0-beta7</version>
-    </dependency>
-
-    <!-- DL4J UI (for debugging/training visualization) -->
-    <dependency>
-        <groupId>org.deeplearning4j</groupId>
-        <artifactId>deeplearning4j-ui</artifactId>
-        <version>1.0.0-beta7</version>
-    </dependency>
     </dependencies>
-	
+    
     <repositories>
         <repository>
             <id>ubc-yong-gao</id>
