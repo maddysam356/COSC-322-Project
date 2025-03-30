@@ -2,13 +2,11 @@
 package ubc.cosc322;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 
-import sfs2x.client.entities.Room;
 import ygraph.ai.smartfox.games.BaseGameGUI;
 import ygraph.ai.smartfox.games.GameClient;
-import ygraph.ai.smartfox.games.GameMessage;
 import ygraph.ai.smartfox.games.GamePlayer;
 
 
@@ -22,7 +20,10 @@ public class COSC322Test extends GamePlayer {
     private String userName = null;
     private String passwd = null;
 
-    
+    //added for bot 
+    private int[][] boardState = new int[10][10];
+    private int playerColor = 0; // 1 = white, 2 = black
+    private final minimax bot = new minimax();
      
 
   public static void main(String[] args) {
@@ -35,7 +36,7 @@ public class COSC322Test extends GamePlayer {
             java.awt.EventQueue.invokeLater(() -> player.Go());
         }
         
-        playerMoveHandler.Timer();
+        //playerMoveHandler.Timer();
     }
 
    
@@ -47,33 +48,216 @@ public class COSC322Test extends GamePlayer {
       this.gamegui = new BaseGameGUI(this);
 
         // Initialize player movement handler
-        this.playerMoveHandler = new PlayerMoveHandler(this);
+        //this.playerMoveHandler = new PlayerMoveHandler(this);
     }
 
     
      
 
   public void onLogin() {
-      gameClient.joinRoom("Okanagan Lake");
+      //gameClient.joinRoom("Okanagan Lake");
       userName = gameClient.getUserName();
       if (gamegui != null) {
           gamegui.setRoomInformation(gameClient.getRoomList());}}
 
-    /**
-     
-Handles game messages from the server.*/@Override
-  public boolean handleGameMessage(String messageType, Map<String, Object> msgDetails) {
-      System.out.println(messageType);
-      System.out.println(msgDetails);
 
-        if (messageType.equals(GameMessage.GAME_STATE_BOARD)|| playerMoveHandler.queenMoved == true) {
-            ArrayList<Integer> state = (ArrayList<Integer>) msgDetails.get("game-state");
-            playerMoveHandler.updateBoardState(state); // Delegate board updates
-            gamegui.setGameState(state);
-            playerMoveHandler.queenMoved = false;
+          
+    /**Handles game messages from the server.*/
+
+    /* 
+    @Override
+    public boolean handleGameMessage(String messageType, Map<String, Object> msgDetails) {
+        switch (messageType) {
+            case GameMessage.GAME_STATE_BOARD:
+                ArrayList<Integer> state = (ArrayList<Integer>) msgDetails.get("game-state");
+                updateBoardFromList(state);
+                gamegui.setGameState(state);
+                break;
+
+            case GameMessage.GAME_ACTION_MOVE:
+                ArrayList<Integer> queenFrom = (ArrayList<Integer>) msgDetails.get("queen-position-current");
+                ArrayList<Integer> queenTo = (ArrayList<Integer>) msgDetails.get("queen-position-next");
+                ArrayList<Integer> arrow = (ArrayList<Integer>) msgDetails.get("arrow-position");
+
+                applyMove(queenFrom, queenTo, arrow);
+                gamegui.updateGameState(queenFrom, queenTo, arrow);
+
+                // Bot plays if it's now our turn
+                playIfMyTurn();
+                break;
+
+            case GameMessage.GAME_ACTION_START:
+                String whitePlayer = (String) msgDetails.get("player-white");
+                playerColor = whitePlayer.equals(userName) ? 1 : 2;
+                System.out.println("*** I am " + (playerColor == 1 ? "White" : "Black") + " ***");
+
+                if (playerColor == 2) {
+                    playIfMyTurn(); // black goes first
+                }
+                break;
         }
+
         return true;
+    }*/
+
+    @Override
+public boolean handleGameMessage(String messageType, Map<String, Object> msgDetails) {
+    switch (messageType) {
+
+        case "cosc322.game-state.board":
+            ArrayList<Integer> gameState = getMessageByTag(msgDetails, "game-state");
+
+            // Convert 1D gameState into 2D board array
+            boardState = convertGameStateTo2DArray(gameState);
+            gamegui.setGameState(gameState); // Visual update
+            break;
+
+        case "cosc322.game-action.move":
+            ArrayList<Integer> queenFrom = getMessageByTag(msgDetails, "queen-position-current");
+            ArrayList<Integer> queenTo   = getMessageByTag(msgDetails, "queen-position-next");
+            ArrayList<Integer> arrow     = getMessageByTag(msgDetails, "arrow-position");
+
+            applyMove(queenFrom, queenTo, arrow);
+            gamegui.updateGameState(queenFrom, queenTo, arrow);
+            playIfMyTurn();
+            break;
+
+        case "cosc322.game-action.start":
+            String whitePlayer = getMessageByTag(msgDetails, "player-white");
+
+            // Assume local username was saved in `this.username` earlier
+            playerColor = whitePlayer.equalsIgnoreCase(gameClient.getUserName()) ? 1 : 2;
+
+            System.out.println("*** I am " + (playerColor == 1 ? "White" : "Black") + " ***");
+
+            playIfMyTurn();
+            break;
     }
+
+    return true;
+}
+
+
+private int[][] convertGameStateTo2DArray(ArrayList<Integer> gameState) {
+    int[][] board = new int[10][10];
+    for (int i = 0; i < 100; i++) {
+        int row = i / 10;
+        int col = i % 10;
+        board[row][col] = gameState.get(i);
+    }
+    return board;
+}
+
+
+    
+
+
+
+    private void updateBoardFromList(ArrayList<Integer> state) {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                boardState[i][j] = state.get((10 - i) * 11 + j + 1); // Skip first padding row and col
+                if (boardState[i][j] == 3) boardState[i][j] = 3;
+                else if (boardState[i][j] == 1) boardState[i][j] = 1;
+                else if (boardState[i][j] == 2) boardState[i][j] = 2;
+                else boardState[i][j] = 0;
+            }
+        }
+    }
+
+    private void applyMove(ArrayList<Integer> from, ArrayList<Integer> to, ArrayList<Integer> arrow) {
+        int fr = 10 - from.get(0);  // Convert row to 0-based index from top
+        int fc = from.get(1);       // Column is already 0-based
+        int tr = 10 - to.get(0);
+        int tc = to.get(1);
+        int ar = 10 - arrow.get(0);
+        int ac = arrow.get(1);
+    
+        // ✅ Sanity check to avoid crashing from bad input
+        if (isOutOfBounds(fr, fc) || isOutOfBounds(tr, tc) || isOutOfBounds(ar, ac)) {
+            System.err.printf("❌ Invalid move: from (%d,%d) to (%d,%d), arrow (%d,%d)%n",
+                    fr, fc, tr, tc, ar, ac);
+            return;
+        }
+    
+        // 👑 Move queen
+        int queen = boardState[fr][fc];
+        boardState[fr][fc] = 0;
+        boardState[tr][tc] = queen;
+    
+        // 🏹 Shoot arrow
+        boardState[ar][ac] = 3;
+    
+        // 🧠 Log board after move
+        System.out.println("Updated board:");
+        for (int[] row : boardState) {
+            System.out.println(Arrays.toString(row));
+        }
+    }
+    
+    // ✅ Utility to ensure we're not accessing out-of-bound positions
+    private boolean isOutOfBounds(int r, int c) {
+        return r < 0 || r >= 10 || c < 0 || c >= 10;
+    }
+    
+    
+    
+
+    private void playIfMyTurn() {
+        int myQueens = 0, enemyQueens = 0;
+        int myColor = playerColor;
+        int enemyColor = (myColor == 1) ? 2 : 1;
+    
+        // Count how many queens each side has
+        for (int[] row : boardState) {
+            for (int cell : row) {
+                if (cell == myColor) myQueens++;
+                else if (cell == enemyColor) enemyQueens++;
+            }
+        }
+    
+        // Decide if it's our turn
+        boolean isMyTurn = (myColor == 1 && myQueens == enemyQueens)
+                        || (myColor == 2 && myQueens == 4 && enemyQueens == 4);
+    
+        if (!isMyTurn) return;
+    
+        int[] move = bot.findBestMove(boardState, myColor);
+        if (move == null) {
+            System.out.println("No valid move found.");
+            return;
+        }
+    
+        // SmartFox-style coordinates (row: 1-10 from bottom up, col: 0-9)
+        ArrayList<Integer> queenFrom = convertToGameCoords(move[0], move[1]);
+        ArrayList<Integer> queenTo   = convertToGameCoords(move[2], move[3]);
+        ArrayList<Integer> arrow     = convertToGameCoords(move[4], move[5]);
+    
+        System.out.println("Applying move:");
+        System.out.printf("Queen from %s to %s, arrow at %s%n",
+                queenFrom.toString(), queenTo.toString(), arrow.toString());
+    
+        // Send move to server
+        gameClient.sendMoveMessage(queenFrom, queenTo, arrow);
+    
+        // Apply move to local board (converted to array indexing)
+        applyMove(queenFrom, queenTo, arrow);
+    
+        // Show updated move in GUI (pass original SmartFox-style coords)
+        gamegui.updateGameState(queenFrom, queenTo, arrow);
+    }
+    
+    
+    private ArrayList<Integer> convertToGameCoords(int row, int col) {
+        ArrayList<Integer> coords = new ArrayList<>();
+        coords.add(10 - row); // flip row
+        coords.add(col);
+        return coords;
+    }
+
+
+
+
 
     @Override
     public String userName() {
@@ -94,4 +278,10 @@ Handles game messages from the server.*/@Override
     public void connect() {
         gameClient = new GameClient(userName, passwd, this);
     }
+
+    @SuppressWarnings("unchecked")
+    private <T> T getMessageByTag(Map<String, Object> msgDetails, String tag) {
+        return (T) msgDetails.get(tag);
+    }
+
 }

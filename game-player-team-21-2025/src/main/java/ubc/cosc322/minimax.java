@@ -5,17 +5,17 @@ import java.util.List;
 public class minimax {
     
     private static final int MAX_DEPTH = 10; //big number for late game 
-    private static final long TIME_LIMIT = 29000; // 29s
+    private static final long TIME_LIMIT = 20000; // 29s
 
     private long startTime; 
 
     //find best move
-    public Move findBestMove(int[][] board, int player) {
-        Move bestMove = null;
+    public int[] findBestMove(int[][] board, int player) {
+        int[] bestMove = null;
         startTime = System.currentTimeMillis();
 
         for (int depth = 1; depth <= MAX_DEPTH; depth++) {
-            Move currentBestMove = minimaxRoot(board, depth, player);
+            int[] currentBestMove = minimaxRoot(board, depth, player);
 
             if (System.currentTimeMillis() - startTime >= TIME_LIMIT) {
                 System.out.println("time limit reached. using depth: " + (depth - 1)); //print the 
@@ -31,14 +31,14 @@ public class minimax {
 
     // minimax root -minimax for the root node (player turn)
      
-    private Move minimaxRoot(int[][] board, int depth, int player) {
-        List<Move> possibleMoves = Move.generateAllMoves(board, player);//need to make generateAllMoves method
-        Move bestMove = null;
+    private int[] minimaxRoot(int[][] board, int depth, int player) {
+        List<int[]> possibleMoves = MoveGenerator.generateAllMoves(board, player);//need to make generateAllMoves method
+        int[] bestMove = null;
         int bestValue = Integer.MIN_VALUE;
         int alpha = Integer.MIN_VALUE;
         int beta = Integer.MAX_VALUE;
 
-        for (Move move : possibleMoves) {
+        for (int[] move : possibleMoves) {
             int[][] newBoard = applyMove(board, move, player); //create new board with new move
             int moveValue = minimax(newBoard, depth - 1, false, alpha, beta, player);// recursive call for every move -> move to alpha beta minimax
             //find the biggest move of the current biggest move and new move calculated
@@ -61,11 +61,11 @@ public class minimax {
         //check if it is our turn or not
         int opponent = (player == 1) ? 2 : 1;
         //calculate all possible moves
-        List<Move> possibleMoves = Move.generateAllMoves(board, isMaximizing ? player : opponent);
+        List<int[]> possibleMoves = MoveGenerator.generateAllMoves(board, isMaximizing ? player : opponent);
 
         if (isMaximizing) {
             int maxEval = Integer.MIN_VALUE;
-            for (Move move : possibleMoves) {
+            for (int[] move : possibleMoves) {
                 int[][] newBoard = applyMove(board, move, player);
                 int eval = minimax(newBoard, depth - 1, false, alpha, beta, player);
                 maxEval = Math.max(maxEval, eval);
@@ -75,7 +75,7 @@ public class minimax {
             return maxEval;
         } else {
             int minEval = Integer.MAX_VALUE;
-            for (Move move : possibleMoves) {
+            for (int[] move : possibleMoves) {
                 int[][] newBoard = applyMove(board, move, opponent);
                 int eval = minimax(newBoard, depth - 1, true, alpha, beta, player);
                 minEval = Math.min(minEval, eval);
@@ -93,13 +93,27 @@ public class minimax {
 
     //applys move onto temp board
     //not complete - basic for time being need to cnosider which different queens
-    private int[][] applyMove(int[][] board, Move move, int player) {
-        int[][] newBoard = deepCopyBoard(board);//copy board
-        newBoard[move.startRow][move.startCol] = 0;  // remove queen 
-        newBoard[move.endRow][move.endCol] = player; // move queen to new position
-        newBoard[move.arrowRow][move.arrowCol] = -1; // show arrow
+    private int[][] applyMove(int[][] board, int[] move, int player) {
+        // Create a deep copy of the board to simulate the move
+        int[][] newBoard = deepCopyBoard(board);
+    
+        int fromRow = move[0];
+        int fromCol = move[1];
+        int toRow = move[2];
+        int toCol = move[3];
+        int arrowRow = move[4];
+        int arrowCol = move[5];
+    
+        // Move the queen
+        newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
+        newBoard[fromRow][fromCol] = 0;
+    
+        // Place the arrow
+        newBoard[arrowRow][arrowCol] = 3; // 3 = arrow
+    
         return newBoard;
     }
+    
 
     //copy board
     //use of 10 X 10 instead of 11 that is passed in 
