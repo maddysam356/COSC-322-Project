@@ -5,9 +5,9 @@ import java.util.ArrayList;
 public class GenerateAllMoves {
 
     public ArrayList<ArrayList<Integer>> generateAllMoves(ArrayList<Integer> state, int playerColor) {
-        System.out.println("Generating all moves for player " + playerColor);
+        System.out.println("Generating all moves (queen + arrow) for player " + playerColor);
 
-        // Convert 1D state to a 2D board (11x11)
+        // Convert the 1D state to a 2D board (11x11)
         int[][] boardState = new int[11][11];
         for (int i = 10; i >= 0; i--) {
             for (int j = 0; j < 11; j++) {
@@ -16,67 +16,88 @@ public class GenerateAllMoves {
         }
 
         ArrayList<ArrayList<Integer>> allMoveStates = new ArrayList<>();
-        int totalMoves = 0;
 
         // Locate all queens for the specified playerColor
         for (int row = 1; row <= 10; row++) {
             for (int col = 1; col <= 10; col++) {
                 if (boardState[row][col] == playerColor) {
-
-                    // Count & generate moves in each direction
+                    // Directions for queen movement
                     int[] rowSteps = {0, 0, -1, 1, -1, 1, -1, 1};
                     int[] colSteps = {-1, 1, 0, 0, -1, -1, 1, 1};
-                    String[] directions = {
-                        "Left", "Right", "Up", "Down",
-                        "Left-Up", "Left-Down", "Right-Up", "Right-Down"
-                    };
 
-                    System.out.println("Queen at (" + row + ", " + col + "):");
-
-                    int queenMoves = 0;
-                    for (int iDir = 0; iDir < rowSteps.length; iDir++) {
-                        int countDir = countMovesInDirection(boardState, row, col, rowSteps[iDir], colSteps[iDir]);
-                        System.out.println("  " + directions[iDir] + ": " + countDir);
-
-                        // Generate new states for each valid step in this direction
+                    // Generate possible queen moves
+                    for (int dirIndex = 0; dirIndex < rowSteps.length; dirIndex++) {
+                        int countDir = countMovesInDirection(boardState, row, col, rowSteps[dirIndex], colSteps[dirIndex]);
                         int r = row;
                         int c = col;
+                        // Move the queen step by step in this direction
                         for (int step = 0; step < countDir; step++) {
-                            r += rowSteps[iDir];
-                            c += colSteps[iDir];
+                            r += rowSteps[dirIndex];
+                            c += colSteps[dirIndex];
 
                             // Copy board and move queen
-                            int[][] newBoard = copyBoard(boardState);
-                            newBoard[r][c] = newBoard[row][col];
-                            newBoard[row][col] = 0;
+                            int[][] newBoardAfterQueen = copyBoard(boardState);
+                            newBoardAfterQueen[r][c] = newBoardAfterQueen[row][col]; // move queen
+                            newBoardAfterQueen[row][col] = 0;
 
-                            // Convert newBoard back to ArrayList<Integer> format
-                            ArrayList<Integer> newState = convertBoardToState(newBoard);
-                            allMoveStates.add(newState);
+                            // Now, from the queen's new position (r,c), generate arrow shots
+                            generateArrowShotsFrom(newBoardAfterQueen, r, c, allMoveStates);
                         }
-                        queenMoves += countDir;
                     }
-
-                    System.out.println("  Total moves for this queen: " + queenMoves);
-                    totalMoves += queenMoves;
                 }
             }
         }
 
         // Print all generated states
         int index = 1;
-        for (ArrayList<Integer> newState : allMoveStates) {
+        for (ArrayList<Integer> s : allMoveStates) {
             System.out.println("State " + index + ":");
-            printState(newState);
+            printState(s);
             index++;
         }
 
-        System.out.println("Total number of states generated: " + allMoveStates.size());
-        System.out.println("Total number of moves for all queens: " + totalMoves);
-
+        System.out.println("Total number of (queen + arrow) states generated: " + allMoveStates.size());
         return allMoveStates;
     }
 
+    /**
+     * For the queen at (row, col) in newBoardAfterQueen,
+     * generate all valid arrow shots (represented as a 3 on the board),
+     * and add the resulting board states to allMoveStates.
+     */
+    private void generateArrowShotsFrom(int[][] newBoardAfterQueen, int row, int col,
+                                        ArrayList<ArrayList<Integer>> allMoveStates) {
+
+        // Arrow movement uses the same steps as the queen
+        int[] arrowRowSteps = {0, 0, -1, 1, -1, 1, -1, 1};
+        int[] arrowColSteps = {-1, 1, 0, 0, -1, -1, 1, 1};
+
+        for (int i = 0; i < arrowRowSteps.length; i++) {
+            int countArrowDir = countMovesInDirection(newBoardAfterQueen, row, col, arrowRowSteps[i], arrowColSteps[i]);
+            int r = row;
+            int c = col;
+            for (int step = 0; step < countArrowDir; step++) {
+                r += arrowRowSteps[i];
+                c += arrowColSteps[i];
+
+                // Copy board for each arrow shot
+                int[][] finalBoard = copyBoard(newBoardAfterQueen);
+                finalBoard[r][c] = 3; // place arrow
+
+                // Convert final board to state format and add it to the list
+                ArrayList<Integer> newState = convertBoardToState(finalBoard);
+                allMoveStates.add(newState);
+            }
+            // Reset r,c for next direction
+            r = row;
+            c = col;
+        }
+    }
+
+    /**
+     * Counts the number of consecutive, valid, and unoccupied squares
+     * in a given direction (rowStep, colStep) starting from (row, col).
+     */
     private int countMovesInDirection(int[][] board, int row, int col, int rowStep, int colStep) {
         int count = 0;
         int r = row + rowStep;
