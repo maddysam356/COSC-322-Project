@@ -4,10 +4,10 @@ import java.util.ArrayList;
 
 public class GenerateAllMoves {
 
-    public void generateAllMoves(ArrayList<Integer> state, int playerColor) {
+    public ArrayList<ArrayList<Integer>> generateAllMoves(ArrayList<Integer> state, int playerColor) {
         System.out.println("Generating all moves for player " + playerColor);
 
-        // Convert state (1D ArrayList) to a 2D board (11x11)
+        // Convert 1D state to a 2D board (11x11)
         int[][] boardState = new int[11][11];
         for (int i = 10; i >= 0; i--) {
             for (int j = 0; j < 11; j++) {
@@ -15,89 +15,112 @@ public class GenerateAllMoves {
             }
         }
 
-        int counter = 0; // Track the number of valid moves (board states) printed
+        ArrayList<ArrayList<Integer>> allMoveStates = new ArrayList<>();
+        int totalMoves = 0;
 
-        // For each square, check if it has a queen of the specified playerColor
-        for (int row = 0; row <= 10; row++) {
-            for (int col = 0; col <= 10; col++) {
-                // Only move the queen if it matches the given playerColor
+        // Locate all queens for the specified playerColor
+        for (int row = 1; row <= 10; row++) {
+            for (int col = 1; col <= 10; col++) {
                 if (boardState[row][col] == playerColor) {
-                    // Check every possible square to see if it's a valid new position
-                    for (int newRow = 0; newRow <= 10; newRow++) {
-                        for (int newCol = 0; newCol <= 10; newCol++) {
-                            if (isValidMove(boardState, row, col, newRow, newCol)) {
-                                // Copy the board and move the queen to newRow, newCol
-                                int[][] newBoard = copyBoard(boardState);
-                                newBoard[newRow][newCol] = newBoard[row][col];
-                                newBoard[row][col] = 0;
 
-                                // Print the resulting board state
-                                printBoard(newBoard);
-                                System.out.println("-----");
-                                counter++;
-                            }
+                    // Count & generate moves in each direction
+                    int[] rowSteps = {0, 0, -1, 1, -1, 1, -1, 1};
+                    int[] colSteps = {-1, 1, 0, 0, -1, -1, 1, 1};
+                    String[] directions = {
+                        "Left", "Right", "Up", "Down",
+                        "Left-Up", "Left-Down", "Right-Up", "Right-Down"
+                    };
+
+                    System.out.println("Queen at (" + row + ", " + col + "):");
+
+                    int queenMoves = 0;
+                    for (int iDir = 0; iDir < rowSteps.length; iDir++) {
+                        int countDir = countMovesInDirection(boardState, row, col, rowSteps[iDir], colSteps[iDir]);
+                        System.out.println("  " + directions[iDir] + ": " + countDir);
+
+                        // Generate new states for each valid step in this direction
+                        int r = row;
+                        int c = col;
+                        for (int step = 0; step < countDir; step++) {
+                            r += rowSteps[iDir];
+                            c += colSteps[iDir];
+
+                            // Copy board and move queen
+                            int[][] newBoard = copyBoard(boardState);
+                            newBoard[r][c] = newBoard[row][col];
+                            newBoard[row][col] = 0;
+
+                            // Convert newBoard back to ArrayList<Integer> format
+                            ArrayList<Integer> newState = convertBoardToState(newBoard);
+                            allMoveStates.add(newState);
                         }
+                        queenMoves += countDir;
                     }
+
+                    System.out.println("  Total moves for this queen: " + queenMoves);
+                    totalMoves += queenMoves;
                 }
             }
         }
 
-        // Print the total number of valid moves found
-        System.out.println("Total number of states printed: " + counter);
+        // Print all generated states
+        int index = 1;
+        for (ArrayList<Integer> newState : allMoveStates) {
+            System.out.println("State " + index + ":");
+            printState(newState);
+            index++;
+        }
+
+        System.out.println("Total number of states generated: " + allMoveStates.size());
+        System.out.println("Total number of moves for all queens: " + totalMoves);
+
+        return allMoveStates;
     }
 
-    // Validates queen movement: vertical, horizontal, diagonal, unobstructed
-    private static boolean isValidMove(int[][] board, int oldRow, int oldCol, int newRow, int newCol) {
-        // 1) No "move" if the old and new positions are the same
-        if (oldRow == newRow && oldCol == newCol) return false;
-        // 2) Position must be within the valid board area (excluding first column & last row)
-        if (!isValidPosition(newRow, newCol)) return false;
-        // 3) Destination square must be empty
-        if (board[newRow][newCol] != 0) return false;
-
-        // Determine row and column step to check for straight-line movement
-        int rowStep = Integer.compare(newRow, oldRow);
-        int colStep = Integer.compare(newCol, oldCol);
-
-        // Must move either vertically, horizontally, or diagonally
-        if (rowStep == 0 && colStep == 0) return false;
-
-        // Traverse from (oldRow, oldCol) to (newRow, newCol) to check for obstructions
-        int r = oldRow + rowStep;
-        int c = oldCol + colStep;
-        while (r != newRow || c != newCol) {
-            if (!isValidPosition(r, c)) return false;
-            if (board[r][c] != 0) return false;
+    private int countMovesInDirection(int[][] board, int row, int col, int rowStep, int colStep) {
+        int count = 0;
+        int r = row + rowStep;
+        int c = col + colStep;
+        while (isValidPosition(r, c) && board[r][c] == 0) {
+            count++;
             r += rowStep;
             c += colStep;
         }
-        return true;
+        return count;
     }
 
-    /**
-     * Restricts valid positions so that col=0 and row=10 are considered "out of bounds."
-     * Adjust the range as needed if your board representation differs.
-     */
     private static boolean isValidPosition(int row, int col) {
-        // row must be between 0 and 9, col must be between 1 and 10
-        return (row >= 0 && row < 10) && (col > 0 && col <= 10);
+        return (row >= 1 && row <= 10) && (col >= 1 && col <= 10);
     }
 
-    private static int[][] copyBoard(int[][] original) {
-        int[][] copy = new int[11][11];
-        for (int i = 0; i < 11; i++) {
-            System.arraycopy(original[i], 0, copy[i], 0, 11);
+    // Creates a deep copy of the 2D board
+    private int[][] copyBoard(int[][] original) {
+        int[][] copy = new int[original.length][original[0].length];
+        for (int i = 0; i < original.length; i++) {
+            System.arraycopy(original[i], 0, copy[i], 0, original[i].length);
         }
         return copy;
     }
 
-    private static void printBoard(int[][] board) {
-        // Print rows from top (10) down to 0 for a more standard view
+    // Convert the 2D board back to a 1D state representation
+    private ArrayList<Integer> convertBoardToState(int[][] board) {
+        ArrayList<Integer> state = new ArrayList<>();
         for (int i = 10; i >= 0; i--) {
             for (int j = 0; j < 11; j++) {
-                System.out.print(board[i][j] + " ");
+                state.add(board[i][j]);
+            }
+        }
+        return state;
+    }
+
+    // Print the 1D state as a 2D grid
+    private void printState(ArrayList<Integer> state) {
+        for (int i = 10; i >= 0; i--) {
+            for (int j = 0; j < 11; j++) {
+                System.out.print(state.get(i * 11 + j) + " ");
             }
             System.out.println();
         }
+        System.out.println();
     }
 }
