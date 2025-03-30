@@ -2,7 +2,7 @@ package ubc.cosc322;
 
 import java.util.Arrays;
 
-public class MinimaxTest {
+public class testApplyMove {
     public static void main(String[] args) {
         // Sample board: 10x10 empty, with a player queen at (3,3)
         int[][] board = new int[10][10];
