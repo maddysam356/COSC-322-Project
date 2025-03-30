@@ -61,46 +61,8 @@ public class COSC322Test extends GamePlayer {
           gamegui.setRoomInformation(gameClient.getRoomList());}}
 
 
-          
-    /**Handles game messages from the server.*/
 
-    /* 
-    @Override
-    public boolean handleGameMessage(String messageType, Map<String, Object> msgDetails) {
-        switch (messageType) {
-            case GameMessage.GAME_STATE_BOARD:
-                ArrayList<Integer> state = (ArrayList<Integer>) msgDetails.get("game-state");
-                updateBoardFromList(state);
-                gamegui.setGameState(state);
-                break;
-
-            case GameMessage.GAME_ACTION_MOVE:
-                ArrayList<Integer> queenFrom = (ArrayList<Integer>) msgDetails.get("queen-position-current");
-                ArrayList<Integer> queenTo = (ArrayList<Integer>) msgDetails.get("queen-position-next");
-                ArrayList<Integer> arrow = (ArrayList<Integer>) msgDetails.get("arrow-position");
-
-                applyMove(queenFrom, queenTo, arrow);
-                gamegui.updateGameState(queenFrom, queenTo, arrow);
-
-                // Bot plays if it's now our turn
-                playIfMyTurn();
-                break;
-
-            case GameMessage.GAME_ACTION_START:
-                String whitePlayer = (String) msgDetails.get("player-white");
-                playerColor = whitePlayer.equals(userName) ? 1 : 2;
-                System.out.println("*** I am " + (playerColor == 1 ? "White" : "Black") + " ***");
-
-                if (playerColor == 2) {
-                    playIfMyTurn(); // black goes first
-                }
-                break;
-        }
-
-        return true;
-    }*/
-
-    @Override
+@Override
 public boolean handleGameMessage(String messageType, Map<String, Object> msgDetails) {
     switch (messageType) {
 
@@ -137,7 +99,8 @@ public boolean handleGameMessage(String messageType, Map<String, Object> msgDeta
     return true;
 }
 
-
+// Incorrect since the gameState sends an arraylist length 121
+// The current method handles a case where the length is of 100/
 private int[][] convertGameStateTo2DArray(ArrayList<Integer> gameState) {
     int[][] board = new int[10][10];
     for (int i = 0; i < 100; i++) {

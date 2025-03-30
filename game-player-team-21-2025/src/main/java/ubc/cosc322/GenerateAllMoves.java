@@ -4,118 +4,144 @@ import java.util.ArrayList;
 
 public class GenerateAllMoves {
 
-    /**
-     * Generates all possible successor states for the given game state.
-     * @param currentState The current game state represented as a TreeNode.
-     * @param isWhiteTurn True if it's the white player's turn, false if it's the black player's turn.
-     * @return An ArrayList of TreeNode objects representing all possible successor states.
-     */
-    public ArrayList<TreeNode> generateMoves(TreeNode currentState, boolean isWhiteTurn) {
-        ArrayList<TreeNode> successors = new ArrayList<>();
-        int[][] board = currentState.getBoardState(); // Get the current board state
-        int player = isWhiteTurn ? 1 : 2; // 1 for white, 2 for black
+    public ArrayList<ArrayList<Integer>> generateAllMoves(ArrayList<Integer> state, int playerColor) {
+        System.out.println("Generating all moves (queen + arrow) for player " + playerColor);
 
-        // Find all queens belonging to the current player
-        ArrayList<int[]> playerQueens = findPlayerQueens(board, player);
+        // Convert the 1D state to a 2D board (11x11)
+        int[][] boardState = new int[11][11];
+        for (int i = 10; i >= 0; i--) {
+            for (int j = 0; j < 11; j++) {
+                boardState[i][j] = state.get(i * 11 + j);
+            }
+        }
 
-        // For each queen, generate all possible moves
-        for (int[] queen : playerQueens) {
-            int queenRow = queen[0];
-            int queenCol = queen[1];
+        ArrayList<ArrayList<Integer>> allMoveStates = new ArrayList<>();
 
-            // Get all valid moves for the selected queen
-            ArrayList<int[]> queenMoves = findValidMoves(board, queenRow, queenCol);
+        // Locate all queens for the specified playerColor
+        for (int row = 1; row <= 10; row++) {
+            for (int col = 1; col <= 10; col++) {
+                if (boardState[row][col] == playerColor) {
+                    // Directions for queen movement
+                    int[] rowSteps = {0, 0, -1, 1, -1, 1, -1, 1};
+                    int[] colSteps = {-1, 1, 0, 0, -1, -1, 1, 1};
 
-            // For each queen move, generate all possible arrow shots
-            for (int[] queenMove : queenMoves) {
-                int[][] tempBoard = copyBoard(board);
-                tempBoard[queenRow][queenCol] = 0; // Remove the queen from the original position
-                tempBoard[queenMove[0]][queenMove[1]] = player; // Place the queen in the new position
+                    // Generate possible queen moves
+                    for (int dirIndex = 0; dirIndex < rowSteps.length; dirIndex++) {
+                        int countDir = countMovesInDirection(boardState, row, col, rowSteps[dirIndex], colSteps[dirIndex]);
+                        int r = row;
+                        int c = col;
+                        // Move the queen step by step in this direction
+                        for (int step = 0; step < countDir; step++) {
+                            r += rowSteps[dirIndex];
+                            c += colSteps[dirIndex];
 
-                // Get all valid arrow shots from the new queen position
-                ArrayList<int[]> arrowShots = findValidMoves(tempBoard, queenMove[0], queenMove[1]);
+                            // Copy board and move queen
+                            int[][] newBoardAfterQueen = copyBoard(boardState);
+                            newBoardAfterQueen[r][c] = newBoardAfterQueen[row][col]; // move queen
+                            newBoardAfterQueen[row][col] = 0;
 
-                for (int[] arrowShot : arrowShots) {
-                    int[][] newBoard = copyBoard(tempBoard);
-                    newBoard[arrowShot[0]][arrowShot[1]] = 3; // Mark the arrow shot position
-
-                    // Create a new TreeNode for the successor state
-                    TreeNode successor = new TreeNode(newBoard, queenRow, queenCol, queenMove[0], queenMove[1], arrowShot[0], arrowShot[1]);
-                    successors.add(successor);
+                            // Now, from the queen's new position (r,c), generate arrow shots
+                            generateArrowShotsFrom(newBoardAfterQueen, r, c, allMoveStates);
+                        }
+                    }
                 }
             }
         }
 
-        return successors;
+        // Print all generated states
+        int index = 1;
+        for (ArrayList<Integer> s : allMoveStates) {
+            System.out.println("State " + index + ":");
+            printState(s);
+            index++;
+        }
+
+        System.out.println("Total number of (queen + arrow) states generated: " + allMoveStates.size());
+        return allMoveStates;
     }
 
     /**
-     * Finds all queens belonging to the specified player on the board.
-     * @param board The current board state.
-     * @param player The player (1 for white, 2 for black).
-     * @return A list of positions (row, col) of the player's queens.
+     * For the queen at (row, col) in newBoardAfterQueen,
+     * generate all valid arrow shots (represented as a 3 on the board),
+     * and add the resulting board states to allMoveStates.
      */
-    private ArrayList<int[]> findPlayerQueens(int[][] board, int player) {
-        ArrayList<int[]> queens = new ArrayList<>();
-        for (int row = 0; row < board.length; row++) {
-            for (int col = 0; col < board[row].length; col++) {
-                if (board[row][col] == player) {
-                    queens.add(new int[]{row, col});
-                }
+    private void generateArrowShotsFrom(int[][] newBoardAfterQueen, int row, int col,
+                                        ArrayList<ArrayList<Integer>> allMoveStates) {
+
+        // Arrow movement uses the same steps as the queen
+        int[] arrowRowSteps = {0, 0, -1, 1, -1, 1, -1, 1};
+        int[] arrowColSteps = {-1, 1, 0, 0, -1, -1, 1, 1};
+
+        for (int i = 0; i < arrowRowSteps.length; i++) {
+            int countArrowDir = countMovesInDirection(newBoardAfterQueen, row, col, arrowRowSteps[i], arrowColSteps[i]);
+            int r = row;
+            int c = col;
+            for (int step = 0; step < countArrowDir; step++) {
+                r += arrowRowSteps[i];
+                c += arrowColSteps[i];
+
+                // Copy board for each arrow shot
+                int[][] finalBoard = copyBoard(newBoardAfterQueen);
+                finalBoard[r][c] = 3; // place arrow
+
+                // Convert final board to state format and add it to the list
+                ArrayList<Integer> newState = convertBoardToState(finalBoard);
+                allMoveStates.add(newState);
+            }
+            // Reset r,c for next direction
+            r = row;
+            c = col;
+        }
+    }
+
+    /**
+     * Counts the number of consecutive, valid, and unoccupied squares
+     * in a given direction (rowStep, colStep) starting from (row, col).
+     */
+    private int countMovesInDirection(int[][] board, int row, int col, int rowStep, int colStep) {
+        int count = 0;
+        int r = row + rowStep;
+        int c = col + colStep;
+        while (isValidPosition(r, c) && board[r][c] == 0) {
+            count++;
+            r += rowStep;
+            c += colStep;
+        }
+        return count;
+    }
+
+    private static boolean isValidPosition(int row, int col) {
+        return (row >= 1 && row <= 10) && (col >= 1 && col <= 10);
+    }
+
+    // Creates a deep copy of the 2D board
+    private int[][] copyBoard(int[][] original) {
+        int[][] copy = new int[original.length][original[0].length];
+        for (int i = 0; i < original.length; i++) {
+            System.arraycopy(original[i], 0, copy[i], 0, original[i].length);
+        }
+        return copy;
+    }
+
+    // Convert the 2D board back to a 1D state representation
+    private ArrayList<Integer> convertBoardToState(int[][] board) {
+        ArrayList<Integer> state = new ArrayList<>();
+        for (int i = 10; i >= 0; i--) {
+            for (int j = 0; j < 11; j++) {
+                state.add(board[i][j]);
             }
         }
-        return queens;
+        return state;
     }
 
-    /**
-     * Finds all valid moves for a piece at the given position.
-     * @param board The current board state.
-     * @param row The row of the piece.
-     * @param col The column of the piece.
-     * @return A list of valid moves (row, col) for the piece.
-     */
-    private ArrayList<int[]> findValidMoves(int[][] board, int row, int col) {
-        ArrayList<int[]> validMoves = new ArrayList<>();
-        int[][] directions = {
-            {-1, 0}, {1, 0}, {0, -1}, {0, 1}, // Up, Down, Left, Right
-            {-1, -1}, {-1, 1}, {1, -1}, {1, 1} // Diagonals
-        };
-
-        for (int[] direction : directions) {
-            int newRow = row + direction[0];
-            int newCol = col + direction[1];
-
-            while (isValidPosition(board, newRow, newCol)) {
-                validMoves.add(new int[]{newRow, newCol});
-                newRow += direction[0];
-                newCol += direction[1];
+    // Print the 1D state as a 2D grid
+    private void printState(ArrayList<Integer> state) {
+        for (int i = 10; i >= 0; i--) {
+            for (int j = 0; j < 11; j++) {
+                System.out.print(state.get(i * 11 + j) + " ");
             }
+            System.out.println();
         }
-
-        return validMoves;
-    }
-
-    /**
-     * Checks if a position is valid for a move.
-     * @param board The current board state.
-     * @param row The row to check.
-     * @param col The column to check.
-     * @return True if the position is valid, false otherwise.
-     */
-    private boolean isValidPosition(int[][] board, int row, int col) {
-        return row >= 0 && row < board.length && col >= 0 && col < board[row].length && board[row][col] == 0;
-    }
-
-    /**
-     * Creates a deep copy of the board.
-     * @param board The board to copy.
-     * @return A new 2D array that is a copy of the original board.
-     */
-    private int[][] copyBoard(int[][] board) {
-        int[][] newBoard = new int[board.length][board[0].length];
-        for (int i = 0; i < board.length; i++) {
-            System.arraycopy(board[i], 0, newBoard[i], 0, board[i].length);
-        }
-        return newBoard;
+        System.out.println();
     }
 }
