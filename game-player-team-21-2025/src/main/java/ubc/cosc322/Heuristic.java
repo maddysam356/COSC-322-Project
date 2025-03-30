@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+// Returns a single heuristic score for the board state
 public class Heuristic {
     public static int evaluateBoard(int[][] board) {
         int mobilityScore = calculateWeightedMobility(board);

@@ -9,7 +9,9 @@ public class minimax {
 
     private long startTime; 
 
-    //find best move
+    //returns an array containing the best move for the player
+    //the array contains the following values:
+    //fromRow, fromCol, toRow, toCol, arrowRow, arrowCol
     public int[] findBestMove(int[][] board, int player) {
         int[] bestMove = null;
         startTime = System.currentTimeMillis();
