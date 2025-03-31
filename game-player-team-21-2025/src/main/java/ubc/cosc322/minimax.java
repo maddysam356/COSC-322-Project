@@ -15,7 +15,14 @@ public class minimax {
     public int[] findBestMove(int[][] board, int player) {
         int[] bestMove = null;
         startTime = System.currentTimeMillis();
-
+       // if (player ==1) {
+        	
+        	//player =2;
+      // }
+      // if (player ==2) {
+        	
+        	//player =1;
+    //    }
         for (int depth = 1; depth <= MAX_DEPTH; depth++) {
             int[] currentBestMove = minimaxRoot(board, depth, player);
 

@@ -77,8 +77,17 @@ public boolean handleGameMessage(String messageType, Map<String, Object> msgDeta
             ArrayList<Integer> queenFrom = getMessageByTag(msgDetails, "queen-position-current");
             ArrayList<Integer> queenTo   = getMessageByTag(msgDetails, "queen-position-next");
             ArrayList<Integer> arrow     = getMessageByTag(msgDetails, "arrow-position");
-
-            applyMove(queenFrom, queenTo, arrow);
+            System.out.println(arrow);
+            ArrayList<Integer> queenFromLocal =   new  ArrayList<Integer>();
+            ArrayList<Integer> queenToLocal =   new  ArrayList<Integer>();
+            ArrayList<Integer> arrowLocal =   new  ArrayList<Integer>();
+            queenFromLocal.add(queenFrom.get(0));
+            queenFromLocal.add(queenFrom.get(1) -1);
+            queenToLocal.add(queenTo.get(0));
+            queenToLocal.add(queenTo.get(1) -1);
+            arrowLocal.add(arrow.get(0));
+            arrowLocal.add(arrow.get(1) -1);
+            applyMove(queenFromLocal, queenToLocal, arrowLocal);
             gamegui.updateGameState(queenFrom, queenTo, arrow);
             playIfMyTurn();
             break;
@@ -195,19 +204,22 @@ private int[][] convertGameStateTo2DArray(ArrayList<Integer> gameState) {
         ArrayList<Integer> queenFrom = convertToGameCoords(move[0], move[1]);
         ArrayList<Integer> queenTo   = convertToGameCoords(move[2], move[3]);
         ArrayList<Integer> arrow     = convertToGameCoords(move[4], move[5]);
+        ArrayList<Integer> queenFromGUI = convertToGameCoordsGUI(move[0], move[1]);
+        ArrayList<Integer> queenToGUI   = convertToGameCoordsGUI(move[2], move[3]);
+        ArrayList<Integer> arrowGUI     = convertToGameCoordsGUI(move[4], move[5]);
     
         System.out.println("Applying move:");
         System.out.printf("Queen from %s to %s, arrow at %s%n",
                 queenFrom.toString(), queenTo.toString(), arrow.toString());
     
         // Send move to server
-        gameClient.sendMoveMessage(queenFrom, queenTo, arrow);
+        gameClient.sendMoveMessage(queenFromGUI, queenToGUI, arrowGUI);
     
         // Apply move to local board (converted to array indexing)
         applyMove(queenFrom, queenTo, arrow);
     
         // Show updated move in GUI (pass original SmartFox-style coords)
-        gamegui.updateGameState(queenFrom, queenTo, arrow);
+        gamegui.updateGameState(queenFromGUI, queenToGUI, arrowGUI);
     }
     
     
@@ -218,7 +230,12 @@ private int[][] convertGameStateTo2DArray(ArrayList<Integer> gameState) {
         return coords;
     }
 
-
+    private ArrayList<Integer> convertToGameCoordsGUI(int row, int col) {
+        ArrayList<Integer> coords = new ArrayList<>();
+        coords.add(10 - row); // flip row
+        coords.add(col + 1);
+        return coords;
+    }
 
 
 
