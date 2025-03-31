@@ -1,3 +1,4 @@
+package ubc.cosc322;
 /*package ubc.cosc322;
 //basic test to see if the neural network works as expected
 public class testNN {

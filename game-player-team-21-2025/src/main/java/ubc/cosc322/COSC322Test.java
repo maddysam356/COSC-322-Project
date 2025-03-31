@@ -1,4 +1,3 @@
-
 package ubc.cosc322;
 
 import java.util.ArrayList;
@@ -92,8 +91,11 @@ public boolean handleGameMessage(String messageType, Map<String, Object> msgDeta
 
             System.out.println("*** I am " + (playerColor == 1 ? "White" : "Black") + " ***");
 
-            playIfMyTurn();
+            if (playerColor == 2) {
+                playIfMyTurn(); // black goes first
+            }
             break;
+           
     }
 
     return true;
@@ -103,10 +105,10 @@ public boolean handleGameMessage(String messageType, Map<String, Object> msgDeta
 // The current method handles a case where the length is of 100/
 private int[][] convertGameStateTo2DArray(ArrayList<Integer> gameState) {
     int[][] board = new int[10][10];
-    for (int i = 0; i < 100; i++) {
-        int row = i / 10;
-        int col = i % 10;
-        board[row][col] = gameState.get(i);
+    for (int i = 1; i <= 10; i++) { // Skip the first row of padding
+        for (int j = 1; j <= 10; j++) { // Skip the first column of padding
+            board[i - 1][j - 1] = gameState.get(i * 11 + j); // Map to 10x10 board
+        }
     }
     return board;
 }
