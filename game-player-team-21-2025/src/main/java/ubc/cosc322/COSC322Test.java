@@ -101,8 +101,6 @@ public boolean handleGameMessage(String messageType, Map<String, Object> msgDeta
     return true;
 }
 
-// Incorrect since the gameState sends an arraylist length 121
-// The current method handles a case where the length is of 100/
 private int[][] convertGameStateTo2DArray(ArrayList<Integer> gameState) {
     int[][] board = new int[10][10];
     for (int i = 1; i <= 10; i++) { // Skip the first row of padding
