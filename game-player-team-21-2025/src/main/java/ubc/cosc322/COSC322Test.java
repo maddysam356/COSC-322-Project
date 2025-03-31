@@ -21,7 +21,7 @@ public class COSC322Test extends GamePlayer {
 
     //added for bot 
     private int[][] boardState = new int[10][10];
-    private int playerColor = 0; // 1 = white, 2 = black
+    private int playerColor = 0; // 1 = black, 2 = white
     private final minimax bot = new minimax();
      
 
