@@ -6,13 +6,13 @@ import java.util.Queue;
 
 // Returns a single heuristic score for the board state
 public class Heuristic {
-    public static int evaluateBoard(int[][] board) {
-        int mobilityScore = calculateWeightedMobility(board);
-        int influenceScore = calculateInfluence(board);
-        int territoryScore = calculateTerritoryControl(board);
-        int opponentBlockingScore = calculateEnemyBlocking(board);
-        int queenSafetyScore = calculateQueenSafety(board);
-
+    public static int evaluateBoard(int[][] board, int player) {
+        int mobilityScore = calculateWeightedMobility(board,player);
+        int influenceScore = calculateInfluence(board, player);
+        int territoryScore = calculateTerritoryControl(board, player);
+        int opponentBlockingScore = calculateEnemyBlocking(board,player);
+        int queenSafetyScore = calculateQueenSafety(board,player);
+        
         // formula
         return (int) ((2.5 * mobilityScore) + (2 * influenceScore) + (1.5 * territoryScore) + 
                       (1.2 * opponentBlockingScore) - (1 * queenSafetyScore));
@@ -20,15 +20,27 @@ public class Heuristic {
 
 
     //mobitity 
-    public static int calculateWeightedMobility(int[][] board) {
+    public static int calculateWeightedMobility(int[][] board,int player) {
         int playerMoves = 0;
         int opponentMoves = 0;
+        int enemy = 0;
+        if (player == 1) {
+        	
+        	
+        	enemy = 2;
+        	
+        }
+        if (player == 2) {
+        	
+        	
+        	enemy = 1;
+        }
         //loop through board
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-                if (board[i][j] == 1) { // bot queen =1
+                if (board[i][j] == player) { // bot queen =1
                     playerMoves += weightMove(MoveGenerator.findMovesForQueen(board, i, j), i, j);
-                } else if (board[i][j] == 2) { // enemy queen =2
+                } else if (board[i][j] == enemy) { // enemy queen =2
                     opponentMoves += weightMove(MoveGenerator.findMovesForQueen(board, i, j), i, j);
                 }
             }
@@ -54,16 +66,27 @@ public class Heuristic {
     }
 
     //influence
-    public static int calculateInfluence(int[][] board) {
+    public static int calculateInfluence(int[][] board,int player) {
         int[][] influenceMap = new int[10][10]; // new board for calculations
-
+        int enemy = 0;
+        if (player == 1) {
+        	
+        	
+        	enemy = 2;
+        	
+        }
+        if (player == 2) {
+        	
+        	
+        	enemy = 1;
+        }
         //loop through board
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 // check for bot queens and enemy queens
-                if (board[i][j] == 1) {
+                if (board[i][j] == player) {
                     updateInfluence(board, influenceMap, i, j, 1);
-                } else if (board[i][j] == 2) {
+                } else if (board[i][j] == enemy) {
                     updateInfluence(board, influenceMap, i, j, -1);
                 }
             }
@@ -100,7 +123,7 @@ public class Heuristic {
     }
 
 
-    public static int calculateTerritoryControl(int[][] board) {
+    public static int calculateTerritoryControl(int[][] board, int player) {
         boolean[][] visited = new boolean[10][10];//1 if item present
         int playerScore = 0, opponentScore = 0; //to track control
 
@@ -109,9 +132,9 @@ public class Heuristic {
             for (int j = 0; j < 10; j++) {
                 if (board[i][j] == 0 && !visited[i][j]) {//if empty area and not already checked
                     int areaSize = floodFill(board, visited, i, j);//find other empty area connected to tile
-                    if (isNearPlayer(board, i, j)) {//check if newar bot and increase score
+                    if (isNearPlayer(board, i, j,player)) {//check if newar bot and increase score
                         playerScore += areaSize;
-                    } else if (isNearEnemy(board, i, j)) {//check if near enemy and increase score
+                    } else if (isNearEnemy(board, i, j,player)) {//check if near enemy and increase score
                         opponentScore += areaSize;
                     }
                 }
@@ -146,13 +169,25 @@ public class Heuristic {
     }
 
     //check for bot =1
-    private static boolean isNearPlayer(int[][] board, int row, int col) {
-        return checkBoard(board, row, col, 1);
+    private static boolean isNearPlayer(int[][] board, int row, int col, int player) {
+        return checkBoard(board, row, col, player);
     }
 
     //check for enemy =2
-    private static boolean isNearEnemy(int[][] board, int row, int col) {
-        return checkBoard(board, row, col, 2);
+    private static boolean isNearEnemy(int[][] board, int row, int col, int player) {
+    	int enemy = 0;
+        if (player == 1) {
+        	
+        	
+        	enemy = 2;
+        	
+        }
+        if (player == 2) {
+        	
+        	
+        	enemy = 1;
+        }
+        return checkBoard(board, row, col, enemy);
     }
 
     private static boolean checkBoard(int[][] board, int row, int col, int player) {
@@ -167,19 +202,31 @@ public class Heuristic {
     }
 
     //better move if enemy has less space
-    public static int calculateEnemyBlocking(int[][] board) {
-        int MoveCountBefore = MoveGenerator.generateAllMoves(board, 2).size();
-        int MoveCountAfter = MoveGenerator.generateAllMoves(board, 2).size();
+    public static int calculateEnemyBlocking(int[][] board, int player) {
+    	int enemy = 0;
+        if (player == 1) {
+        	
+        	
+        	enemy = 2;
+        	
+        }
+        if (player == 2) {
+        	
+        	
+        	enemy = 1;
+        }
+        int MoveCountBefore = MoveGenerator.generateAllMoves(board, enemy).size();
+        int MoveCountAfter = MoveGenerator.generateAllMoves(board, enemy).size();
         return MoveCountBefore - MoveCountAfter;// better if less moves after move
     }
 
     //better is queens have more space
-    public static int calculateQueenSafety(int[][] board) {
+    public static int calculateQueenSafety(int[][] board,int player) {
         int safetyPenalty = 0;
 
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-                if (board[i][j] == 1) {
+                if (board[i][j] == player) {
                     int moves = MoveGenerator.findMovesForQueen(board, i, j).size();
                     if (moves < 3) safetyPenalty += (4 - moves); //less space higher penalty
                 }

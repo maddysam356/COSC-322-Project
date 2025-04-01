@@ -46,10 +46,26 @@ public class minimax {
         int bestValue = Integer.MIN_VALUE;
         int alpha = Integer.MIN_VALUE;
         int beta = Integer.MAX_VALUE;
-
+        boolean TestIsMaximizing = false;
         for (int[] move : possibleMoves) {
             int[][] newBoard = applyMove(board, move, player); //create new board with new move
-            int moveValue = minimax(newBoard, depth - 1, false, alpha, beta, player);// recursive call for every move -> move to alpha beta minimax
+            
+            
+            
+            if (player == 1) {
+            	
+            	TestIsMaximizing = false;
+            	
+            }
+            
+            if (player == 2) {
+            	
+            	TestIsMaximizing = true;
+            	
+            }
+            
+            
+            int moveValue = minimax(newBoard, depth - 1, TestIsMaximizing, alpha, beta, player);// recursive call for every move -> move to alpha beta minimax
             //find the biggest move of the current biggest move and new move calculated
             if (moveValue > bestValue) {
                 bestValue = moveValue;
@@ -64,7 +80,7 @@ public class minimax {
     //Minimax function with alpha-beta pruning.
     private int minimax(int[][] board, int depth, boolean isMaximizing, int alpha, int beta, int player) {
         if (depth == 0 || isTimeUp()) {//return best hurstic value with move
-            return Heuristic.evaluateBoard(board); //temperory class in use
+            return Heuristic.evaluateBoard(board,player); //temperory class in use
         }
 
         //check if it is our turn or not
