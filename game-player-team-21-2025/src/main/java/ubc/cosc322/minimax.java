@@ -5,7 +5,7 @@ import java.util.List;
 public class minimax {
     
     private static final int MAX_DEPTH = 10; //big number for late game 
-    private static final long TIME_LIMIT = 20000; // 29s
+    private static final long TIME_LIMIT = 29000; // 29s
 
     private long startTime; 
 
@@ -15,14 +15,7 @@ public class minimax {
     public int[] findBestMove(int[][] board, int player) {
         int[] bestMove = null;
         startTime = System.currentTimeMillis();
-       // if (player ==1) {
-        	
-        	//player =2;
-      // }
-      // if (player ==2) {
-        	
-        	//player =1;
-    //    }
+     
         for (int depth = 1; depth <= MAX_DEPTH; depth++) {
             int[] currentBestMove = minimaxRoot(board, depth, player);
 
