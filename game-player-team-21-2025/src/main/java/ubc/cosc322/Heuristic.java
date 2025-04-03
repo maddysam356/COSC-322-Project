@@ -4,18 +4,24 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
+
 // Returns a single heuristic score for the board state
 public class Heuristic {
     public static int evaluateBoard(int[][] board, int player) {
-        int mobilityScore = calculateWeightedMobility(board,player);
-        int influenceScore = calculateInfluence(board, player);
-        int territoryScore = calculateTerritoryControl(board, player);
-        int opponentBlockingScore = calculateEnemyBlocking(board,player);
-        int queenSafetyScore = calculateQueenSafety(board,player);
+        int mobilityScore = calculateWeightedMobility(board, player);     // mobility
+        int influenceScore = calculateInfluence(board, player);          // influence
+        int territoryScore = calculateTerritoryControl(board, player);   // territory
+        int opponentBlockingScore = calculateEnemyBlocking(board, player);
+        int queenSafetyScore = calculateQueenSafety(board, player);
+       
         
-        // formula
-        return (int) ((2.5 * mobilityScore) + (2 * influenceScore) + (1.5 * territoryScore) + 
-                      (1.2 * opponentBlockingScore) - (1 * queenSafetyScore));
+        // Example: heavier emphasis on mobility & territory,
+        // plus synergy bonus, minus direct penalty for queen safety.
+        return (int) (3.0 * mobilityScore
+                    + 3.0 * territoryScore
+                    + 2.0 * influenceScore
+                    + 1.5 * opponentBlockingScore
+                    - 1.0 * queenSafetyScore);
     }
 
 
@@ -235,4 +241,3 @@ public class Heuristic {
         return safetyPenalty;
     }
 }
-    
