@@ -1,84 +1,94 @@
 package ubc.cosc322;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class minimax {
-    
-    private static final int MAX_DEPTH = 10; //big number for late game 
-    private static final long TIME_LIMIT = 29000; // 29s
+    private static final int MAX_DEPTH = 10;
+    private static final long TIME_LIMIT = 29000;
+    private static final int THREAD_COUNT = 8; // 8 threads
 
-    private long startTime; 
+    private long startTime;
 
-    //returns an array containing the best move for the player
-    //the array contains the following values:
-    //fromRow, fromCol, toRow, toCol, arrowRow, arrowCol
     public int[] findBestMove(int[][] board, int player) {
         int[] bestMove = null;
         startTime = System.currentTimeMillis();
-     
+
         for (int depth = 1; depth <= MAX_DEPTH; depth++) {
             int[] currentBestMove = minimaxRoot(board, depth, player);
-
             if (System.currentTimeMillis() - startTime >= TIME_LIMIT) {
-                System.out.println("time limit reached. using depth: " + (depth - 1)); //print the 
+                System.out.println("time limit reached. using depth: " + (depth - 1));
                 break;
             }
-
             if (currentBestMove != null) {
-                bestMove = currentBestMove; //temp best move
+                bestMove = currentBestMove;
             }
         }
         return bestMove;
     }
 
-    // minimax root -minimax for the root node (player turn)
-     
+    // Parallelized minimax root
     private int[] minimaxRoot(int[][] board, int depth, int player) {
-        List<int[]> possibleMoves = MoveGenerator.generateAllMoves(board, player);//need to make generateAllMoves method
-        int[] bestMove = null;
+        List<int[]> possibleMoves = MoveGenerator.generateAllMoves(board, player);
+
+        // Sort moves by heuristic value (descending)
+        possibleMoves.sort((m1, m2) -> {
+            int score1 = Heuristic.evaluateBoard(applyMove(board, m1, player), player);
+            int score2 = Heuristic.evaluateBoard(applyMove(board, m2, player), player);
+            return Integer.compare(score2, score1);
+        });
+
+        // Use an ExecutorService with 8 threads
+        ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
+
         int bestValue = Integer.MIN_VALUE;
-        int alpha = Integer.MIN_VALUE;
+        int[] bestMove = null;
+        AtomicInteger alpha = new AtomicInteger(Integer.MIN_VALUE);
         int beta = Integer.MAX_VALUE;
-        boolean TestIsMaximizing = false;
-        for (int[] move : possibleMoves) {
-            int[][] newBoard = applyMove(board, move, player); //create new board with new move
-            
-            
-            
-            if (player == 1) {
-            	
-            	TestIsMaximizing = false;
-            	
+        
+        try {
+            // Submit each move to be evaluated in parallel
+            List<Future<int[]>> futures = new ArrayList<>();
+            for (int[] move : possibleMoves) {
+                futures.add(executor.submit(() -> {
+                    int[][] newBoard = applyMove(board, move, player);
+                    boolean isMaximizing = (player == 2);
+                    int value = minimax(newBoard, depth - 1, !isMaximizing, alpha.get(), beta, player);
+                    // Return [value, move_index = -1, ...actual move coords...]
+                    int[] result = new int[move.length + 1];
+                    result[0] = value; 
+                    System.arraycopy(move, 0, result, 1, move.length);
+                    return result;
+                }));
             }
-            
-            if (player == 2) {
-            	
-            	TestIsMaximizing = true;
-            	
+
+            // Collect results and find the best
+            for (Future<int[]> f : futures) {
+                int[] outcome = f.get();
+                int value = outcome[0];
+                if (value > bestValue) {
+                    bestValue = value;
+                    bestMove = new int[outcome.length - 1];
+                    System.arraycopy(outcome, 1, bestMove, 0, outcome.length - 1);
+                }
+                alpha.set(Math.max(alpha.get(), bestValue));
+                if (alpha.get() >= beta) break;
             }
-            
-            
-            int moveValue = minimax(newBoard, depth - 1, TestIsMaximizing, alpha, beta, player);// recursive call for every move -> move to alpha beta minimax
-            //find the biggest move of the current biggest move and new move calculated
-            if (moveValue > bestValue) {
-                bestValue = moveValue;
-                bestMove = move;
-            }
-            //find max of alpha and best value
-            alpha = Math.max(alpha, bestValue);
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        } finally {
+            executor.shutdown();
         }
         return bestMove;
     }
 
-    //Minimax function with alpha-beta pruning.
     private int minimax(int[][] board, int depth, boolean isMaximizing, int alpha, int beta, int player) {
-        if (depth == 0 || isTimeUp()) {//return best hurstic value with move
-            return Heuristic.evaluateBoard(board,player); //temperory class in use
+        if (depth == 0 || isTimeUp()) {
+            return Heuristic.evaluateBoard(board, player);
         }
-
-        //check if it is our turn or not
         int opponent = (player == 1) ? 2 : 1;
-        //calculate all possible moves
         List<int[]> possibleMoves = MoveGenerator.generateAllMoves(board, isMaximizing ? player : opponent);
 
         if (isMaximizing) {
@@ -88,7 +98,7 @@ public class minimax {
                 int eval = minimax(newBoard, depth - 1, false, alpha, beta, player);
                 maxEval = Math.max(maxEval, eval);
                 alpha = Math.max(alpha, eval);
-                if (beta <= alpha) break; // Beta prune
+                if (beta <= alpha) break;
             }
             return maxEval;
         } else {
@@ -98,43 +108,28 @@ public class minimax {
                 int eval = minimax(newBoard, depth - 1, true, alpha, beta, player);
                 minEval = Math.min(minEval, eval);
                 beta = Math.min(beta, eval);
-                if (beta <= alpha) break; // Alpha prune
+                if (beta <= alpha) break;
             }
             return minEval;
         }
     }
 
-    //check for time
     private boolean isTimeUp() {
         return (System.currentTimeMillis() - startTime) >= TIME_LIMIT;
     }
 
-    //applys move onto temp board
-    //not complete - basic for time being need to cnosider which different queens
     private int[][] applyMove(int[][] board, int[] move, int player) {
-        // Create a deep copy of the board to simulate the move
         int[][] newBoard = deepCopyBoard(board);
-    
-        int fromRow = move[0];
-        int fromCol = move[1];
-        int toRow = move[2];
-        int toCol = move[3];
-        int arrowRow = move[4];
-        int arrowCol = move[5];
-    
-        // Move the queen
+        int fromRow = move[0], fromCol = move[1];
+        int toRow = move[2], toCol = move[3];
+        int arrowRow = move[4], arrowCol = move[5];
+
         newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
         newBoard[fromRow][fromCol] = 0;
-    
-        // Place the arrow
-        newBoard[arrowRow][arrowCol] = 3; // 3 = arrow
-    
+        newBoard[arrowRow][arrowCol] = 3;
         return newBoard;
     }
-    
 
-    //copy board
-    //use of 10 X 10 instead of 11 that is passed in 
     private int[][] deepCopyBoard(int[][] board) {
         int[][] copy = new int[10][10];
         for (int i = 0; i < 10; i++) {
